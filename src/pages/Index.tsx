@@ -1,9 +1,11 @@
+
 import React, { useEffect, useState } from 'react';
 import Hero from '../components/Hero';
 import About from '../components/About';
 import Education from '../components/Education';
 import Skills from '../components/Skills';
 import Projects from '../components/Projects';
+import Awards from '../components/Awards';
 import Gallery from '../components/Gallery';
 import Blog from '../components/Blog';
 import Contact from '../components/Contact';
@@ -65,7 +67,7 @@ const Index = () => {
       
       // Add conditional sections based on visibility
       if (sectionVisibility.show_education) sections.push('education');
-      sections.push('skills', 'projects');
+      sections.push('skills', 'projects', 'awards');
       if (sectionVisibility.show_gallery) sections.push('gallery');
       if (sectionVisibility.show_blog) sections.push('blog');
       sections.push('contact');
@@ -115,6 +117,10 @@ const Index = () => {
       
       <section id="projects">
         <Projects />
+      </section>
+      
+      <section id="awards">
+        <Awards />
       </section>
       
       {sectionVisibility.show_gallery && (

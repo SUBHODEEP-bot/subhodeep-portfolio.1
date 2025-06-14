@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import AdminNav from './AdminNav';
 import DashboardOverview from './sections/DashboardOverview';
@@ -13,6 +12,7 @@ import ContactManager from './sections/ContactManager';
 import SettingsEditor from './sections/SettingsEditor';
 import SocialLinksEditor from './sections/SocialLinksEditor'; // Import the new editor
 import AvatarUploader from './sections/AvatarUploader';
+import AwardsEditor from './sections/AwardsEditor';
 
 interface AdminDashboardProps {
   onLogout?: () => void;
@@ -33,6 +33,8 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
         return <SkillsManager />;
       case 'projects':
         return <ProjectsEditor />;
+      case 'awards':
+        return <AwardsEditor />;
       case 'education':
         return <EducationEditor />;
       case 'gallery':
