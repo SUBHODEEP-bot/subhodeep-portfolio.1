@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { ArrowDown, Github, Linkedin, Youtube, Twitter, LucideIcon, icons } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -47,11 +48,16 @@ const Hero = () => {
         if (error) throw error;
 
         const heroContent = data.reduce((acc, item) => {
-          let value = item.content_value;
-          if (typeof value === 'string') {
-            try { value = JSON.parse(value); } catch { /* keep as string */ }
+          const key = item.content_key as keyof HeroData;
+          const value = item.content_value;
+          
+          if (value !== null && value !== undefined) {
+            if (typeof value === 'object') {
+              acc[key] = JSON.stringify(value);
+            } else {
+              acc[key] = String(value);
+            }
           }
-          acc[item.content_key as keyof HeroData] = value;
           return acc;
         }, {} as Partial<HeroData>);
 
@@ -77,21 +83,27 @@ const Hero = () => {
         if (error) throw error;
 
         if (data && data.content_value) {
-          let parsedLinksValue = data.content_value;
-          if (typeof parsedLinksValue === 'string') {
-            try { parsedLinksValue = JSON.parse(parsedLinksValue); } catch (e) { parsedLinksValue = []; console.error("Failed to parse social links JSON:", e); }
+          let parsedJson: unknown;
+          if (typeof data.content_value === 'string') {
+            try {
+              parsedJson = JSON.parse(data.content_value);
+            } catch (e) {
+              parsedJson = [];
+              console.error("Failed to parse social links JSON:", e);
+            }
+          } else {
+            parsedJson = data.content_value;
           }
           
-          if (Array.isArray(parsedLinksValue)) {
-            const validLinks = parsedLinksValue.filter(
-              // This is the updated type guard
-              (link: any): link is SocialLinkData =>
-                link != null &&
-                typeof link === 'object' &&
-                typeof link.platform === 'string' &&
-                typeof link.url === 'string' &&
-                typeof link.icon === 'string'
-            );
+          if (Array.isArray(parsedJson)) {
+            const isSocialLinkData = (link: any): link is SocialLinkData =>
+              link != null &&
+              typeof link === 'object' &&
+              typeof link.platform === 'string' &&
+              typeof link.url === 'string' &&
+              typeof link.icon === 'string';
+            
+            const validLinks = (parsedJson as any[]).filter(isSocialLinkData);
             setSocialLinks(validLinks);
           } else {
              console.warn('Social links from DB is not an array or is malformed. Using defaults.');
@@ -125,7 +137,7 @@ const Hero = () => {
 
     fetchHeroData();
     fetchSocialLinks();
-  }, [heroData.name, heroData.title, heroData.description]); // Dependencies updated for heroData defaults
+  }, []); // Changed dependency array to run only once on mount
 
   const roles = heroData.title.split(' | ').filter(role => role.trim());
 
