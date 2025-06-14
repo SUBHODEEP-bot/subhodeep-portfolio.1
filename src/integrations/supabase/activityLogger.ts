@@ -1,7 +1,8 @@
 
 import { supabase } from './client';
+import type { Json } from './types';
 
-export const logActivity = async (action: string, details?: object) => {
+export const logActivity = async (action: string, details?: Json) => {
   try {
     const { error } = await supabase.from('activity_log').insert({ action, details: details || {} });
     if (error) {
