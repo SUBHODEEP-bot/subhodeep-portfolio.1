@@ -31,10 +31,24 @@ const SettingsEditor = () => {
       if (error) throw error;
 
       const settingsData = data.reduce((acc, item) => {
-        // Parse the JSON string to get the actual value
-        acc[item.content_key] = typeof item.content_value === 'string' 
-          ? JSON.parse(item.content_value) 
-          : item.content_value;
+        // Handle different data types properly
+        let value = item.content_value;
+        
+        // If content_value is already parsed or a primitive type, use it directly
+        if (typeof value === 'boolean' || typeof value === 'number') {
+          acc[item.content_key] = value;
+        } else if (typeof value === 'string') {
+          // Try to parse as JSON if it's a string, otherwise use as-is
+          try {
+            acc[item.content_key] = JSON.parse(value);
+          } catch {
+            acc[item.content_key] = value;
+          }
+        } else {
+          // For objects or arrays, use directly
+          acc[item.content_key] = value;
+        }
+        
         return acc;
       }, {} as any);
 
@@ -60,7 +74,7 @@ const SettingsEditor = () => {
       const updates = Object.entries(settings).map(([key, value]) => ({
         section: 'settings',
         content_key: key,
-        content_value: JSON.stringify(value)
+        content_value: typeof value === 'string' ? value : JSON.stringify(value)
       }));
 
       for (const update of updates) {
@@ -92,6 +106,15 @@ const SettingsEditor = () => {
       ...prev,
       [key]: value
     }));
+  };
+
+  const getVisibleSectionsCount = () => {
+    let count = 2; // Hero and About are always visible
+    if (settings.show_education) count++;
+    if (settings.show_gallery) count++;
+    if (settings.show_blog) count++;
+    count += 3; // Skills, Projects, Contact are always visible
+    return count;
   };
 
   if (loading) {
@@ -226,18 +249,18 @@ const SettingsEditor = () => {
           </div>
         </div>
 
-        {/* Quick Stats */}
+        {/* Website Stats */}
         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-          <h2 className="text-2xl font-semibold text-white mb-6">Quick Stats</h2>
+          <h2 className="text-2xl font-semibold text-white mb-6">Website Stats</h2>
           
           <div className="grid grid-cols-2 gap-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-cyan-400">5</div>
+              <div className="text-2xl font-bold text-cyan-400">{getVisibleSectionsCount()}</div>
               <div className="text-gray-300 text-sm">Active Sections</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-400">100%</div>
-              <div className="text-gray-300 text-sm">Uptime</div>
+              <div className="text-2xl font-bold text-green-400">Online</div>
+              <div className="text-gray-300 text-sm">Status</div>
             </div>
           </div>
         </div>
