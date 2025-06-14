@@ -45,7 +45,7 @@ const Awards = () => {
             <img src={award.image_url} alt={award.title} className="w-full h-56 object-cover" />
             <CardHeader>
               <CardTitle className="text-xl font-bold">{award.title}</CardTitle>
-              {award.issued_date && <CardDescription className="text-slate-400">{new Date(award.issued_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}</CardDescription>}
+              {award.issued_date && <CardDescription className="text-slate-400">{new Date(award.issued_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', timeZone: 'UTC' })}</CardDescription>}
             </CardHeader>
             <CardContent>
               <p className="text-slate-300">{award.description}</p>

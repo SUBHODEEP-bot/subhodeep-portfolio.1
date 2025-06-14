@@ -64,7 +64,6 @@ const Index = () => {
     const handleScroll = () => {
       const sections = ['hero', 'about'];
       
-      // Add conditional sections based on visibility
       if (sectionVisibility.show_education) sections.push('education');
       sections.push('awards');
       sections.push('skills', 'projects');

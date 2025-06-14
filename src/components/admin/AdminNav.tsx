@@ -14,7 +14,8 @@ import {
   Code,
   LogOut,
   Crown,
-  Award // Import Award icon
+  Award,
+  Link,
 } from 'lucide-react';
 
 interface AdminNavProps {
@@ -37,6 +38,7 @@ const AdminNav = ({ activeSection, setActiveSection, onLogout }: AdminNavProps) 
     { id: 'gallery', label: 'Gallery', icon: Image, color: 'from-pink-500 to-pink-600' },
     { id: 'blog', label: 'Blog', icon: FileText, color: 'from-emerald-500 to-emerald-600' },
     { id: 'contact', label: 'Contact', icon: Mail, color: 'from-red-500 to-red-600' },
+    { id: 'social_links', label: 'Social Links', icon: Link, color: 'from-teal-500 to-teal-600' },
     { id: 'settings', label: 'Settings', icon: Settings, color: 'from-gray-500 to-gray-600' },
   ];
 
@@ -44,6 +46,7 @@ const AdminNav = ({ activeSection, setActiveSection, onLogout }: AdminNavProps) 
     if (onLogout) {
       onLogout();
     }
+    navigate('/');
   };
 
   return (
