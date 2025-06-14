@@ -1,5 +1,6 @@
+
 import React, { useEffect, useState } from 'react';
-import { ArrowDown } from 'lucide-react';
+import { ArrowDown, Github, Linkedin, Youtube, Twitter } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 const Hero = () => {
@@ -7,8 +8,8 @@ const Hero = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentRole, setCurrentRole] = useState(0);
   const [heroData, setHeroData] = useState({
-    name: 'Subhodeep Pal',
-    title: 'Engineering Student | Innovator | Future Technologist',
+    name: 'SUBHODEEP PAL',
+    title: 'Engineering Student | Innovator | Future Technologist | Full Stack Developer',
     description: 'Passionate about creating innovative solutions that bridge technology and human needs. Building the future, one line of code at a time.'
   });
 
@@ -101,9 +102,25 @@ const Hero = () => {
         </div>
 
         {/* Description */}
-        <p className="text-lg md:text-xl text-gray-300 mb-12 max-w-2xl mx-auto leading-relaxed">
+        <p className="text-lg md:text-xl text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed">
           {heroData.description}
         </p>
+
+        {/* Social Links */}
+        <div className="flex justify-center space-x-6 mb-12">
+          <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-cyan-400 transition-colors">
+            <Linkedin size={28} />
+          </a>
+          <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-cyan-400 transition-colors">
+            <Github size={28} />
+          </a>
+          <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-cyan-400 transition-colors">
+            <Youtube size={28} />
+          </a>
+          <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-cyan-400 transition-colors">
+            <Twitter size={28} />
+          </a>
+        </div>
 
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row justify-center gap-4 mb-16">

@@ -11,15 +11,17 @@ import {
   Mail,
   Settings,
   Home,
-  Code
+  Code,
+  LogOut
 } from 'lucide-react';
 
 interface AdminNavProps {
   activeSection: string;
   setActiveSection: (section: string) => void;
+  onLogout?: () => void;
 }
 
-const AdminNav = ({ activeSection, setActiveSection }: AdminNavProps) => {
+const AdminNav = ({ activeSection, setActiveSection, onLogout }: AdminNavProps) => {
   const navigate = useNavigate();
 
   const menuItems = [
@@ -35,11 +37,17 @@ const AdminNav = ({ activeSection, setActiveSection }: AdminNavProps) => {
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
+  const handleLogout = () => {
+    if (onLogout) {
+      onLogout();
+    }
+  };
+
   return (
     <nav className="fixed left-0 top-0 h-full w-64 bg-white shadow-lg border-r border-gray-200">
       <div className="p-6 border-b border-gray-200">
         <h1 className="text-2xl font-bold text-gray-800">Admin Panel</h1>
-        <p className="text-sm text-gray-600 mt-1">Website Management</p>
+        <p className="text-sm text-gray-600 mt-1">Subhodeep Pal's Profile</p>
       </div>
 
       <div className="py-6">
@@ -62,13 +70,23 @@ const AdminNav = ({ activeSection, setActiveSection }: AdminNavProps) => {
         })}
       </div>
 
-      <div className="absolute bottom-6 left-6 right-6">
+      <div className="absolute bottom-6 left-6 right-6 space-y-2">
         <button
           onClick={() => navigate('/')}
           className="w-full px-4 py-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
         >
           ← Back to Website
         </button>
+        
+        {onLogout && (
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center space-x-2 px-4 py-2 text-sm text-red-600 hover:text-red-700 border border-red-300 rounded-lg hover:bg-red-50 transition-colors"
+          >
+            <LogOut size={16} />
+            <span>Logout</span>
+          </button>
+        )}
       </div>
     </nav>
   );

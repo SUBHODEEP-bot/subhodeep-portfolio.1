@@ -12,7 +12,11 @@ import BlogEditor from './sections/BlogEditor';
 import ContactEditor from './sections/ContactEditor';
 import SettingsEditor from './sections/SettingsEditor';
 
-const AdminDashboard = () => {
+interface AdminDashboardProps {
+  onLogout?: () => void;
+}
+
+const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
   const [activeSection, setActiveSection] = useState('dashboard');
 
   const renderSection = () => {
@@ -44,7 +48,11 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <AdminNav activeSection={activeSection} setActiveSection={setActiveSection} />
+      <AdminNav 
+        activeSection={activeSection} 
+        setActiveSection={setActiveSection}
+        onLogout={onLogout}
+      />
       <main className="ml-64 p-8">
         <div className="max-w-7xl mx-auto">
           {renderSection()}
