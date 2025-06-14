@@ -1,21 +1,20 @@
 
-import React from 'react';
+import React, { useState } from 'react';
+import AdminNav from './AdminNav';
+import DashboardOverview from './sections/DashboardOverview';
 import HeroEditor from './sections/HeroEditor';
 import AboutEditor from './sections/AboutEditor';
 import SkillsEditor from './sections/SkillsEditor';
 import ProjectsEditor from './sections/ProjectsEditor';
-import ContactEditor from './sections/ContactEditor';
 import EducationEditor from './sections/EducationEditor';
 import GalleryEditor from './sections/GalleryEditor';
 import BlogEditor from './sections/BlogEditor';
+import ContactEditor from './sections/ContactEditor';
 import SettingsEditor from './sections/SettingsEditor';
-import DashboardOverview from './sections/DashboardOverview';
 
-interface AdminDashboardProps {
-  activeSection: string;
-}
+const AdminDashboard = () => {
+  const [activeSection, setActiveSection] = useState('dashboard');
 
-const AdminDashboard = ({ activeSection }: AdminDashboardProps) => {
   const renderSection = () => {
     switch (activeSection) {
       case 'dashboard':
@@ -28,14 +27,14 @@ const AdminDashboard = ({ activeSection }: AdminDashboardProps) => {
         return <SkillsEditor />;
       case 'projects':
         return <ProjectsEditor />;
-      case 'contact':
-        return <ContactEditor />;
       case 'education':
         return <EducationEditor />;
       case 'gallery':
         return <GalleryEditor />;
       case 'blog':
         return <BlogEditor />;
+      case 'contact':
+        return <ContactEditor />;
       case 'settings':
         return <SettingsEditor />;
       default:
@@ -44,8 +43,13 @@ const AdminDashboard = ({ activeSection }: AdminDashboardProps) => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {renderSection()}
+    <div className="min-h-screen bg-gray-50">
+      <AdminNav activeSection={activeSection} setActiveSection={setActiveSection} />
+      <main className="ml-64 p-8">
+        <div className="max-w-7xl mx-auto">
+          {renderSection()}
+        </div>
+      </main>
     </div>
   );
 };

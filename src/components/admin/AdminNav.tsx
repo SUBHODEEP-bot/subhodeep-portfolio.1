@@ -1,18 +1,17 @@
 
 import React from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { 
-  LayoutDashboard, 
-  User, 
-  Briefcase, 
-  Award, 
-  Mail, 
-  Home,
+import { useNavigate } from 'react-router-dom';
+import {
+  LayoutDashboard,
+  User,
+  Briefcase,
   GraduationCap,
   Image,
-  BookOpen,
+  FileText,
+  Mail,
   Settings,
-  LogOut
+  Home,
+  Code
 } from 'lucide-react';
 
 interface AdminNavProps {
@@ -21,72 +20,55 @@ interface AdminNavProps {
 }
 
 const AdminNav = ({ activeSection, setActiveSection }: AdminNavProps) => {
-  const { signOut } = useAuth();
+  const navigate = useNavigate();
 
-  const navItems = [
+  const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'hero', label: 'Hero Section', icon: Home },
-    { id: 'about', label: 'About Me', icon: User },
-    { id: 'education', label: 'Education', icon: GraduationCap },
-    { id: 'skills', label: 'Skills', icon: Award },
+    { id: 'about', label: 'About', icon: User },
+    { id: 'skills', label: 'Skills', icon: Code },
     { id: 'projects', label: 'Projects', icon: Briefcase },
+    { id: 'education', label: 'Education', icon: GraduationCap },
     { id: 'gallery', label: 'Gallery', icon: Image },
-    { id: 'blog', label: 'Blog', icon: BookOpen },
+    { id: 'blog', label: 'Blog', icon: FileText },
     { id: 'contact', label: 'Contact', icon: Mail },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/10 backdrop-blur-md border-b border-white/20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          <div className="text-2xl font-bold text-white">
-            Admin Panel
-          </div>
+    <nav className="fixed left-0 top-0 h-full w-64 bg-white shadow-lg border-r border-gray-200">
+      <div className="p-6 border-b border-gray-200">
+        <h1 className="text-2xl font-bold text-gray-800">Admin Panel</h1>
+        <p className="text-sm text-gray-600 mt-1">Website Management</p>
+      </div>
 
-          <div className="hidden lg:flex space-x-2">
-            {navItems.map((item) => {
-              const IconComponent = item.icon;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveSection(item.id)}
-                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-xs font-medium transition-colors duration-200 ${
-                    activeSection === item.id
-                      ? 'bg-cyan-500 text-white'
-                      : 'text-white hover:text-cyan-300'
-                  }`}
-                >
-                  <IconComponent size={14} />
-                  <span>{item.label}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Mobile dropdown menu */}
-          <div className="lg:hidden">
-            <select
-              value={activeSection}
-              onChange={(e) => setActiveSection(e.target.value)}
-              className="bg-white/10 border border-white/20 text-white rounded-lg px-3 py-2 text-sm"
+      <div className="py-6">
+        {menuItems.map((item) => {
+          const Icon = item.icon;
+          return (
+            <button
+              key={item.id}
+              onClick={() => setActiveSection(item.id)}
+              className={`w-full flex items-center px-6 py-3 text-left transition-colors ${
+                activeSection === item.id
+                  ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              }`}
             >
-              {navItems.map((item) => (
-                <option key={item.id} value={item.id} className="bg-slate-800">
-                  {item.label}
-                </option>
-              ))}
-            </select>
-          </div>
+              <Icon className="mr-3 h-5 w-5" />
+              {item.label}
+            </button>
+          );
+        })}
+      </div>
 
-          <button
-            onClick={signOut}
-            className="flex items-center space-x-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
-          >
-            <LogOut size={16} />
-            <span>Logout</span>
-          </button>
-        </div>
+      <div className="absolute bottom-6 left-6 right-6">
+        <button
+          onClick={() => navigate('/')}
+          className="w-full px-4 py-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+        >
+          ← Back to Website
+        </button>
       </div>
     </nav>
   );
