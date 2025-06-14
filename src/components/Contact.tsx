@@ -1,13 +1,22 @@
-
 import React, { useState, useEffect } from 'react';
 import { Mail, MapPin, Phone, Send, Download, Linkedin, Github, Youtube } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const Contact = () => {
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const [contactData, setContactData] = useState({
     email: 'subhodeep.pal@example.com',
     phone: '+91 9876543210',
-    location: 'Kolkata, West Bengal, India'
+    location: 'Kolkata, West Bengal, India',
+    resume_url: '',
+    socials: {
+      linkedin: '#',
+      github: '#',
+      youtube: '#',
+    }
   });
 
   const [formData, setFormData] = useState({
@@ -44,6 +53,8 @@ const Contact = () => {
               email: contactContent.email || prev.email,
               phone: contactContent.phone || prev.phone,
               location: contactContent.location || prev.location,
+              resume_url: contactContent.resume_url || prev.resume_url,
+              socials: contactContent.socials || prev.socials,
             }));
         }
       } catch (error) {
@@ -62,18 +73,33 @@ const Contact = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
-    // Handle form submission here
-    alert('Thank you for your message! I\'ll get back to you soon.');
-    setFormData({ name: '', email: '', message: '' });
+    setIsSubmitting(true);
+    try {
+      const { error } = await supabase.from('contact_messages').insert(formData);
+      if (error) throw error;
+      toast({
+        title: 'Message Sent!',
+        description: "Thank you for your message! I'll get back to you soon.",
+      });
+      setFormData({ name: '', email: '', message: '' });
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      toast({
+        title: 'Error',
+        description: 'Something went wrong. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const socialLinks = [
-    { icon: Linkedin, label: 'LinkedIn', url: '#', color: 'hover:text-blue-400' },
-    { icon: Github, label: 'GitHub', url: '#', color: 'hover:text-gray-400' },
-    { icon: Youtube, label: 'YouTube', url: '#', color: 'hover:text-red-400' },
+    { icon: Linkedin, label: 'LinkedIn', url: contactData.socials.linkedin, color: 'hover:text-blue-400' },
+    { icon: Github, label: 'GitHub', url: contactData.socials.github, color: 'hover:text-gray-400' },
+    { icon: Youtube, label: 'YouTube', url: contactData.socials.youtube, color: 'hover:text-red-400' },
   ];
 
   return (
@@ -135,7 +161,9 @@ const Contact = () => {
                 {socialLinks.map((social) => (
                   <a
                     key={social.label}
-                    href={social.url}
+                    href={social.url || '#'}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className={`w-12 h-12 bg-white/10 rounded-full flex items-center justify-center text-white transition-all duration-300 hover:bg-white/20 transform hover:scale-110 ${social.color}`}
                     aria-label={social.label}
                   >
@@ -151,10 +179,15 @@ const Contact = () => {
               <p className="text-gray-300 mb-6">
                 Get a comprehensive overview of my skills, experience, and achievements.
               </p>
-              <button className="flex items-center space-x-2 bg-gradient-to-r from-cyan-500 to-purple-500 text-white px-6 py-3 rounded-full font-medium hover:from-cyan-600 hover:to-purple-600 transition-all duration-300 transform hover:scale-105">
-                <Download size={20} />
-                <span>Download Resume</span>
-              </button>
+              <a href={contactData.resume_url || '#'} download target="_blank" rel="noopener noreferrer">
+                <button 
+                  disabled={!contactData.resume_url}
+                  className="flex items-center space-x-2 bg-gradient-to-r from-cyan-500 to-purple-500 text-white px-6 py-3 rounded-full font-medium hover:from-cyan-600 hover:to-purple-600 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Download size={20} />
+                  <span>Download Resume</span>
+                </button>
+              </a>
             </div>
           </div>
 
@@ -213,10 +246,11 @@ const Contact = () => {
 
               <button
                 type="submit"
-                className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-cyan-500 to-purple-500 text-white px-6 py-4 rounded-lg font-medium hover:from-cyan-600 hover:to-purple-600 transition-all duration-300 transform hover:scale-105"
+                disabled={isSubmitting}
+                className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-cyan-500 to-purple-500 text-white px-6 py-4 rounded-lg font-medium hover:from-cyan-600 hover:to-purple-600 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Send size={20} />
-                <span>Send Message</span>
+                <span>{isSubmitting ? 'Sending...' : 'Send Message'}</span>
               </button>
             </form>
           </div>

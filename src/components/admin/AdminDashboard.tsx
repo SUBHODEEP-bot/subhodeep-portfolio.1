@@ -9,7 +9,7 @@ import ProjectsEditor from './sections/ProjectsEditor';
 import EducationEditor from './sections/EducationEditor';
 import GalleryEditor from './sections/GalleryEditor';
 import BlogEditor from './sections/BlogEditor';
-import ContactEditor from './sections/ContactEditor';
+import ContactManager from './sections/ContactManager';
 import SettingsEditor from './sections/SettingsEditor';
 import SocialLinksEditor from './sections/SocialLinksEditor'; // Import the new editor
 import AvatarUploader from './sections/AvatarUploader';
@@ -40,7 +40,7 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
       case 'blog':
         return <BlogEditor />;
       case 'contact':
-        return <ContactEditor />;
+        return <ContactManager />;
       case 'settings':
         return <SettingsEditor />;
       case 'social_links': // Add new case
