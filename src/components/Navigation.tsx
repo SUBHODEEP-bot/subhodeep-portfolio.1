@@ -2,11 +2,15 @@
 import React, { useState } from 'react';
 import { Menu, X } from 'lucide-react';
 
-const Navigation = () => {
+interface NavigationProps {
+  activeSection: string;
+}
+
+const Navigation = ({ activeSection }: NavigationProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const navItems = [
-    { href: '#home', label: 'Home' },
+    { href: '#hero', label: 'Home' },
     { href: '#about', label: 'About' },
     { href: '#skills', label: 'Skills' },
     { href: '#projects', label: 'Projects' },
@@ -29,15 +33,24 @@ const Navigation = () => {
           {/* Desktop Navigation */}
           <div className="hidden md:block">
             <div className="ml-10 flex items-baseline space-x-4">
-              {navItems.map((item) => (
-                <a
-                  key={item.href}
-                  href={item.href}
-                  className="text-gray-300 hover:text-cyan-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-                >
-                  {item.label}
-                </a>
-              ))}
+              {navItems.map((item) => {
+                const sectionName = item.href.replace('#', '');
+                const isActive = activeSection === sectionName;
+                
+                return (
+                  <a
+                    key={item.href}
+                    href={item.href}
+                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                      isActive
+                        ? 'text-cyan-400 bg-cyan-400/10'
+                        : 'text-gray-300 hover:text-cyan-400'
+                    }`}
+                  >
+                    {item.label}
+                  </a>
+                );
+              })}
               <a
                 href="/admin"
                 className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:from-cyan-600 hover:to-blue-700 transition-all"
@@ -62,16 +75,25 @@ const Navigation = () => {
         {isOpen && (
           <div className="md:hidden">
             <div className="px-2 pt-2 pb-3 space-y-1 bg-black/95 rounded-lg mt-2">
-              {navItems.map((item) => (
-                <a
-                  key={item.href}
-                  href={item.href}
-                  className="text-gray-300 hover:text-cyan-400 block px-3 py-2 rounded-md text-base font-medium transition-colors"
-                  onClick={() => setIsOpen(false)}
-                >
-                  {item.label}
-                </a>
-              ))}
+              {navItems.map((item) => {
+                const sectionName = item.href.replace('#', '');
+                const isActive = activeSection === sectionName;
+                
+                return (
+                  <a
+                    key={item.href}
+                    href={item.href}
+                    className={`block px-3 py-2 rounded-md text-base font-medium transition-colors ${
+                      isActive
+                        ? 'text-cyan-400 bg-cyan-400/10'
+                        : 'text-gray-300 hover:text-cyan-400'
+                    }`}
+                    onClick={() => setIsOpen(false)}
+                  >
+                    {item.label}
+                  </a>
+                );
+              })}
               <a
                 href="/admin"
                 className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white block px-3 py-2 rounded-md text-base font-medium hover:from-cyan-600 hover:to-blue-700 transition-all"
