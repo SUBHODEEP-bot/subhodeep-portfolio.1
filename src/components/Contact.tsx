@@ -1,31 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Mail, MapPin, Phone, Send, Download, Linkedin, Github, Youtube, Twitter, Instagram, Facebook, Gitlab, Dribbble, Behance, Codepen } from 'lucide-react';
+import { Mail, MapPin, Phone, Send, Download, Linkedin, Github, Youtube } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-
-interface SocialLink {
-  platform: string;
-  url: string;
-  icon: string;
-}
-
-const iconComponents: { [key: string]: React.ElementType } = {
-  Linkedin,
-  Github,
-  Youtube,
-  Twitter,
-  Instagram,
-  Facebook,
-  Gitlab,
-  Dribbble,
-  Behance,
-  Codepen
-};
 
 const Contact = () => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
 
   const [contactData, setContactData] = useState({
     email: 'subhodeep.pal@example.com',
@@ -46,59 +26,43 @@ const Contact = () => {
   });
 
   useEffect(() => {
-    const fetchAllData = async () => {
+    const fetchContactData = async () => {
       try {
-        const [contactRes, socialRes] = await Promise.all([
-          supabase
-            .from('website_content')
-            .select('content_key, content_value')
-            .eq('section', 'contact'),
-          supabase
-            .from('website_content')
-            .select('content_value')
-            .eq('section', 'social_links')
-            .eq('content_key', 'links')
-            .maybeSingle()
-        ]);
+        const { data, error } = await supabase
+          .from('website_content')
+          .select('content_key, content_value')
+          .eq('section', 'contact');
 
-        if (contactRes.error) throw contactRes.error;
-        if (contactRes.data) {
-          const contactContent = contactRes.data.reduce((acc, item) => {
-            if (item.content_key !== 'socials') {
-              let value = item.content_value;
-              if (typeof value === 'string') {
-                try { value = JSON.parse(value); } catch (e) { /* Not JSON */ }
-              }
-              acc[item.content_key] = value;
+        if (error) throw error;
+
+        const contactContent = data.reduce((acc, item) => {
+          let value = item.content_value;
+          if (typeof value === 'string') {
+            try {
+              value = JSON.parse(value);
+            } catch (e) {
+              // Not a JSON string, use as is.
             }
-            return acc;
-          }, {} as any);
-          
-          if (Object.keys(contactContent).length > 0) {
+          }
+          acc[item.content_key] = value;
+          return acc;
+        }, {} as any);
+        
+        if (Object.keys(contactContent).length > 0) {
             setContactData(prev => ({
               email: contactContent.email || prev.email,
               phone: contactContent.phone || prev.phone,
               location: contactContent.location || prev.location,
               resume_url: contactContent.resume_url || prev.resume_url,
+              socials: contactContent.socials || prev.socials,
             }));
-          }
         }
-        
-        if (socialRes.error) throw socialRes.error;
-        if (socialRes.data && socialRes.data.content_value) {
-          let parsedLinks = socialRes.data.content_value;
-          if (typeof parsedLinks === 'string') {
-            try { parsedLinks = JSON.parse(parsedLinks); } catch (e) { parsedLinks = []; }
-          }
-          setSocialLinks(Array.isArray(parsedLinks) ? parsedLinks : []);
-        }
-
       } catch (error) {
-        console.error('Error fetching contact page data:', error);
+        console.error('Error fetching contact data:', error);
       }
     };
 
-    fetchAllData();
+    fetchContactData();
   }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -131,6 +95,12 @@ const Contact = () => {
       setIsSubmitting(false);
     }
   };
+
+  const socialLinks = [
+    { icon: Linkedin, label: 'LinkedIn', url: contactData.socials.linkedin, color: 'hover:text-blue-400' },
+    { icon: Github, label: 'GitHub', url: contactData.socials.github, color: 'hover:text-gray-400' },
+    { icon: Youtube, label: 'YouTube', url: contactData.socials.youtube, color: 'hover:text-red-400' },
+  ];
 
   return (
     <div className="relative py-20 px-4">
@@ -187,24 +157,19 @@ const Contact = () => {
             {/* Social Links */}
             <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
               <h3 className="text-xl font-semibold text-white mb-6">Connect with Me</h3>
-              <div className="flex flex-wrap gap-4">
-                {socialLinks.map((social) => {
-                  const IconComponent = iconComponents[social.icon];
-                  if (!IconComponent) return null; // or a default icon
-
-                  return (
-                    <a
-                      key={social.platform}
-                      href={social.url || '#'}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center text-white transition-all duration-300 hover:bg-white/20 transform hover:scale-110"
-                      aria-label={social.platform}
-                    >
-                      <IconComponent size={20} />
-                    </a>
-                  );
-                })}
+              <div className="flex space-x-4">
+                {socialLinks.map((social) => (
+                  <a
+                    key={social.label}
+                    href={social.url || '#'}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`w-12 h-12 bg-white/10 rounded-full flex items-center justify-center text-white transition-all duration-300 hover:bg-white/20 transform hover:scale-110 ${social.color}`}
+                    aria-label={social.label}
+                  >
+                    <social.icon size={20} />
+                  </a>
+                ))}
               </div>
             </div>
 
