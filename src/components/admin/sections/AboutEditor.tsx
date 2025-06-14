@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Save, RefreshCw } from 'lucide-react';
@@ -10,7 +9,10 @@ const AboutEditor = () => {
   const [saving, setSaving] = useState(false);
   const [aboutData, setAboutData] = useState({
     bio: '',
-    quote: ''
+    quote: '',
+    dob: '',
+    location: '',
+    languages: ''
   });
 
   useEffect(() => {
@@ -45,7 +47,10 @@ const AboutEditor = () => {
 
       setAboutData({
         bio: aboutContent.bio || '',
-        quote: aboutContent.quote || ''
+        quote: aboutContent.quote || '',
+        dob: aboutContent.dob || '',
+        location: aboutContent.location || '',
+        languages: aboutContent.languages || ''
       });
     } catch (error) {
       console.error('Error fetching about data:', error);
@@ -132,6 +137,42 @@ const AboutEditor = () => {
               rows={3}
               className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-gray-400 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors resize-none"
               placeholder="Enter your favorite quote or personal motto..."
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Date of Birth
+            </label>
+            <input
+              value={aboutData.dob}
+              onChange={(e) => setAboutData({ ...aboutData, dob: e.target.value })}
+              className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-gray-400 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors"
+              placeholder="e.g., January 15, 2002"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Location
+            </label>
+            <input
+              value={aboutData.location}
+              onChange={(e) => setAboutData({ ...aboutData, location: e.target.value })}
+              className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-gray-400 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors"
+              placeholder="e.g., Kolkata, West Bengal, India"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Languages
+            </label>
+            <input
+              value={aboutData.languages}
+              onChange={(e) => setAboutData({ ...aboutData, languages: e.target.value })}
+              className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-gray-400 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors"
+              placeholder="e.g., English, Hindi, Bengali"
             />
           </div>
 

@@ -6,7 +6,10 @@ import { supabase } from '@/integrations/supabase/client';
 const About = () => {
   const [aboutData, setAboutData] = useState({
     bio: "Hello! I'm Subhodeep Pal, a passionate engineering student with an insatiable curiosity for technology and innovation. My journey in the world of engineering began with a simple fascination for how things work and has evolved into a deep commitment to creating solutions that matter.",
-    quote: "Innovation distinguishes between a leader and a follower. I believe in creating technology that makes a difference."
+    quote: "Innovation distinguishes between a leader and a follower. I believe in creating technology that makes a difference.",
+    dob: 'January 15, 2002',
+    location: 'Kolkata, West Bengal, India',
+    languages: 'English, Hindi, Bengali'
   });
 
   useEffect(() => {
@@ -27,12 +30,13 @@ const About = () => {
           return acc;
         }, {} as any);
 
-        if (aboutContent.bio || aboutContent.quote) {
-          setAboutData({
-            bio: aboutContent.bio || aboutData.bio,
-            quote: aboutContent.quote || aboutData.quote
-          });
-        }
+        setAboutData(prev => ({
+          bio: aboutContent.bio || prev.bio,
+          quote: aboutContent.quote || prev.quote,
+          dob: aboutContent.dob || prev.dob,
+          location: aboutContent.location || prev.location,
+          languages: aboutContent.languages || prev.languages,
+        }));
       } catch (error) {
         console.error('Error fetching about data:', error);
       }
@@ -60,17 +64,17 @@ const About = () => {
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
                   <Calendar className="text-cyan-400" size={20} />
-                  <span className="text-gray-300">Date of Birth: January 15, 2002</span>
+                  <span className="text-gray-300">Date of Birth: {aboutData.dob}</span>
                 </div>
                 
                 <div className="flex items-center space-x-3">
                   <MapPin className="text-cyan-400" size={20} />
-                  <span className="text-gray-300">Location: Kolkata, West Bengal, India</span>
+                  <span className="text-gray-300">Location: {aboutData.location}</span>
                 </div>
                 
                 <div className="flex items-center space-x-3">
                   <Globe className="text-cyan-400" size={20} />
-                  <span className="text-gray-300">Languages: English, Hindi, Bengali</span>
+                  <span className="text-gray-300">Languages: {aboutData.languages}</span>
                 </div>
               </div>
             </div>
