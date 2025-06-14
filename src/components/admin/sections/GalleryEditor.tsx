@@ -33,7 +33,14 @@ const GalleryEditor = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setGallery(data || []);
+      
+      // Type assertion to ensure media_type is properly typed
+      const typedData = (data || []).map(item => ({
+        ...item,
+        media_type: item.media_type as 'image' | 'video'
+      }));
+      
+      setGallery(typedData);
     } catch (error) {
       console.error('Error fetching gallery:', error);
       toast({
