@@ -30,39 +30,6 @@ export type Database = {
         }
         Relationships: []
       }
-      awards: {
-        Row: {
-          created_at: string
-          description: string | null
-          id: string
-          image_url: string
-          issued_date: string | null
-          order: number
-          title: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          image_url: string
-          issued_date?: string | null
-          order?: number
-          title: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          image_url?: string
-          issued_date?: string | null
-          order?: number
-          title?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       blog: {
         Row: {
           content: string

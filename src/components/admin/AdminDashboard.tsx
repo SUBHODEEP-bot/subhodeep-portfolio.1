@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import AdminNav from './AdminNav';
 import DashboardOverview from './sections/DashboardOverview';
@@ -61,7 +60,7 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
         onLogout={onLogout}
       />
       <main className="ml-72 p-6">
-        <div className="max-w-7xl mx-auto space-y-6">
+        <div className="max-w-7xl mx-auto">
           <AvatarUploader />
           {renderSection()}
         </div>

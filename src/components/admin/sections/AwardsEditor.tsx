@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { Award, Plus, Edit, Trash, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,14 +13,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { type Database } from '@/integrations/supabase/types';
 
 type AwardItem = Database['public']['Tables']['awards']['Row'];
-type AwardInsert = Database['public']['Tables']['awards']['Insert'];
-type AwardUpdate = Database['public']['Tables']['awards']['Update'];
 
-
-const fetchAwards = async (): Promise<AwardItem[]> => {
+const fetchAwards = async () => {
   const { data, error } = await supabase.from('awards').select('*').order('order', { ascending: true });
   if (error) throw new Error(error.message);
-  return data || [];
+  return data;
 };
 
 const AwardsEditor = () => {
@@ -29,53 +26,40 @@ const AwardsEditor = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedAward, setSelectedAward] = useState<AwardItem | null>(null);
 
-  const { data: awards, isLoading, error } = useQuery<AwardItem[]>({
+  const { data: awards, isLoading, error } = useQuery({
     queryKey: ['awards'],
     queryFn: fetchAwards,
   });
 
-  const upsertMutation = useMutation({
-    mutationFn: async ({ award, imageFile }: { award: AwardInsert | AwardUpdate, imageFile?: File }) => {
+  const mutation = useMutation({
+    mutationFn: async ({ award, imageFile }: { award: Omit<AwardItem, 'id' | 'created_at' | 'updated_at'>, imageFile?: File }) => {
       let imageUrl = award.image_url;
-      let oldImageUrlToDelete: string | null = null;
 
       if (imageFile) {
-        if (selectedAward?.image_url) {
-          oldImageUrlToDelete = selectedAward.image_url;
-        }
         const filePath = `public/${Date.now()}-${imageFile.name}`;
         const { error: uploadError } = await supabase.storage.from('awards').upload(filePath, imageFile);
-        if (uploadError) throw uploadError;
-
+        if (uploadError) throw new Error(`Image upload failed: ${uploadError.message}`);
+        
         const { data: { publicUrl } } = supabase.storage.from('awards').getPublicUrl(filePath);
         imageUrl = publicUrl;
       }
 
-      if (!imageUrl) throw new Error("Image is required for an award.");
+      if (!imageUrl) throw new Error("Image is required.");
 
       const awardData = { ...award, image_url: imageUrl };
 
       if (selectedAward) {
-        const { error } = await supabase.from('awards').update(awardData as AwardUpdate).eq('id', selectedAward.id);
-        if (error) throw error;
+        // Update
+        const { error } = await supabase.from('awards').update(awardData).eq('id', selectedAward.id);
+        if (error) throw new Error(error.message);
       } else {
-        const { error } = await supabase.from('awards').insert(awardData as AwardInsert);
-        if (error) throw error;
-      }
-
-      if (oldImageUrlToDelete) {
-        try {
-          const url = new URL(oldImageUrlToDelete);
-          const path = url.pathname.split(`/public/awards/`)[1];
-          if (path) await supabase.storage.from('awards').remove([path]);
-        } catch (e) {
-          console.warn("Could not delete old image", e);
-        }
+        // Create
+        const { error } = await supabase.from('awards').insert(awardData);
+        if (error) throw new Error(error.message);
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['awards'] });
-      queryClient.invalidateQueries({ queryKey: ['publicAwards'] });
       toast({ title: 'Success', description: `Award ${selectedAward ? 'updated' : 'saved'} successfully.` });
       setIsFormOpen(false);
       setSelectedAward(null);
@@ -87,20 +71,22 @@ const AwardsEditor = () => {
 
   const deleteMutation = useMutation({
     mutationFn: async (awardToDelete: AwardItem) => {
+      // Delete from DB
       const { error: dbError } = await supabase.from('awards').delete().eq('id', awardToDelete.id);
-      if (dbError) throw dbError;
-
-      try {
-        const url = new URL(awardToDelete.image_url);
-        const path = url.pathname.split(`/public/awards/`)[1];
-        if (path) await supabase.storage.from('awards').remove([path]);
-      } catch (e) {
-        console.warn("Failed to delete image from storage:", e);
+      if (dbError) throw new Error(`Database delete failed: ${dbError.message}`);
+      
+      // Delete from Storage
+      const path = awardToDelete.image_url.split('/').pop();
+      if(path) {
+        const { error: storageError } = await supabase.storage.from('awards').remove([`public/${path}`]);
+        // Don't throw error if file not found, it might have been cleaned up
+        if (storageError && storageError.message !== 'The resource was not found') {
+            console.warn(`Could not delete file from storage: ${storageError.message}`);
+        }
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['awards'] });
-      queryClient.invalidateQueries({ queryKey: ['publicAwards'] });
       toast({ title: 'Success', description: 'Award deleted successfully.' });
     },
     onError: (error) => {
@@ -123,7 +109,7 @@ const AwardsEditor = () => {
     const formData = new FormData(e.currentTarget);
     const imageFile = formData.get('image') as File;
 
-    const awardData: AwardInsert = {
+    const awardData: Omit<AwardItem, 'id' | 'created_at' | 'updated_at'> = {
         title: formData.get('title') as string,
         description: formData.get('description') as string,
         issued_date: formData.get('issued_date') as string || null,
@@ -131,7 +117,7 @@ const AwardsEditor = () => {
         order: selectedAward?.order || 0,
     };
     
-    upsertMutation.mutate({ award: awardData, imageFile: imageFile.size > 0 ? imageFile : undefined });
+    mutation.mutate({ award: awardData, imageFile: imageFile.size > 0 ? imageFile : undefined });
   };
 
   return (
@@ -152,14 +138,14 @@ const AwardsEditor = () => {
               <img src={award.image_url} alt={award.title} className="w-full h-40 object-cover rounded-t-lg"/>
               <CardHeader>
                 <CardTitle>{award.title}</CardTitle>
-                <CardDescription>{award.issued_date && new Date(award.issued_date).toLocaleDateString()}</CardDescription>
+                <CardDescription>{award.issued_date}</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-slate-300">{award.description}</p>
+                <p className="text-sm">{award.description}</p>
               </CardContent>
               <CardFooter className="flex justify-end gap-2">
                 <Button variant="outline" size="sm" onClick={() => handleEdit(award)}><Edit className="mr-2 h-4 w-4" /> Edit</Button>
-                <Button variant="destructive" size="sm" onClick={() => deleteMutation.mutate(award)} disabled={deleteMutation.isPending}><Trash className="mr-2 h-4 w-4" /> {deleteMutation.isPending ? 'Deleting...' : 'Delete'}</Button>
+                <Button variant="destructive" size="sm" onClick={() => deleteMutation.mutate(award)} disabled={deleteMutation.isPending}><Trash className="mr-2 h-4 w-4" /> Delete</Button>
               </CardFooter>
             </Card>
           ))}
@@ -182,7 +168,7 @@ const AwardsEditor = () => {
             </div>
             <div className="space-y-2">
               <Label htmlFor="issued_date">Issued Date</Label>
-              <Input id="issued_date" name="issued_date" type="date" defaultValue={selectedAward?.issued_date?.split('T')[0] || ''} className="bg-slate-800 border-slate-600" />
+              <Input id="issued_date" name="issued_date" type="date" defaultValue={selectedAward?.issued_date || ''} className="bg-slate-800 border-slate-600" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="image">Image</Label>
@@ -191,7 +177,7 @@ const AwardsEditor = () => {
             </div>
             <DialogFooter>
               <DialogClose asChild><Button type="button" variant="secondary">Cancel</Button></DialogClose>
-              <Button type="submit" disabled={upsertMutation.isPending}>{upsertMutation.isPending ? 'Saving...' : 'Save'}</Button>
+              <Button type="submit" disabled={mutation.isPending}>{mutation.isPending ? 'Saving...' : 'Save'}</Button>
             </DialogFooter>
           </form>
         </DialogContent>

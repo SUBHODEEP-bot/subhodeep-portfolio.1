@@ -4,18 +4,15 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Award, Loader2 } from 'lucide-react';
-import { type Database } from '@/integrations/supabase/types';
 
-type AwardItem = Database['public']['Tables']['awards']['Row'];
-
-const fetchAwards = async (): Promise<AwardItem[]> => {
+const fetchAwards = async () => {
   const { data, error } = await supabase.from('awards').select('*').order('issued_date', { ascending: false });
   if (error) throw new Error(error.message);
-  return data || [];
+  return data;
 };
 
 const Awards = () => {
-  const { data: awards, isLoading, error } = useQuery<AwardItem[]>({
+  const { data: awards, isLoading, error } = useQuery({
     queryKey: ['publicAwards'],
     queryFn: fetchAwards,
   });
@@ -48,7 +45,7 @@ const Awards = () => {
             <img src={award.image_url} alt={award.title} className="w-full h-56 object-cover" />
             <CardHeader>
               <CardTitle className="text-xl font-bold">{award.title}</CardTitle>
-              {award.issued_date && <CardDescription className="text-slate-400">{new Date(award.issued_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', timeZone: 'UTC' })}</CardDescription>}
+              {award.issued_date && <CardDescription className="text-slate-400">{new Date(award.issued_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}</CardDescription>}
             </CardHeader>
             <CardContent>
               <p className="text-slate-300">{award.description}</p>
