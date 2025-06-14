@@ -15,7 +15,7 @@ const Awards = () => {
       const { data, error } = await supabase
         .from('awards')
         .select('*')
-        .order('issued_date', { ascending: false, nulls: 'last' })
+        .order('issued_date', { ascending: false, nullsFirst: false })
         .order('order', { ascending: true });
       if (error) throw new Error(error.message);
       return data;

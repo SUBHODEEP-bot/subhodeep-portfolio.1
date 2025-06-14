@@ -16,6 +16,7 @@ import { PlusCircle, Edit, Trash2, Loader2, Upload } from 'lucide-react';
 import type { Database } from '@/integrations/supabase/types';
 
 type Award = Database['public']['Tables']['awards']['Row'];
+type AwardInsert = Database['public']['Tables']['awards']['Insert'];
 
 const awardSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -66,13 +67,17 @@ const AwardsEditor = () => {
 
   const upsertMutation = useMutation({
     mutationFn: async (values: z.infer<typeof awardSchema>) => {
+      const payload: Omit<AwardInsert, 'created_at' | 'updated_at' | 'order'> = {
+        id: selectedAward?.id,
+        title: values.title,
+        description: values.description ?? null,
+        image_url: values.image_url,
+        issued_date: values.issued_date || null,
+      };
+
       const { data, error } = await supabase
         .from('awards')
-        .upsert({
-          id: selectedAward?.id,
-          ...values,
-          issued_date: values.issued_date || null,
-        })
+        .upsert(payload)
         .select()
         .single();
       if (error) throw new Error(error.message);
