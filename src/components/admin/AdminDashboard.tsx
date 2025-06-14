@@ -5,6 +5,10 @@ import AboutEditor from './sections/AboutEditor';
 import SkillsEditor from './sections/SkillsEditor';
 import ProjectsEditor from './sections/ProjectsEditor';
 import ContactEditor from './sections/ContactEditor';
+import EducationEditor from './sections/EducationEditor';
+import GalleryEditor from './sections/GalleryEditor';
+import BlogEditor from './sections/BlogEditor';
+import SettingsEditor from './sections/SettingsEditor';
 import DashboardOverview from './sections/DashboardOverview';
 
 interface AdminDashboardProps {
@@ -26,6 +30,14 @@ const AdminDashboard = ({ activeSection }: AdminDashboardProps) => {
         return <ProjectsEditor />;
       case 'contact':
         return <ContactEditor />;
+      case 'education':
+        return <EducationEditor />;
+      case 'gallery':
+        return <GalleryEditor />;
+      case 'blog':
+        return <BlogEditor />;
+      case 'settings':
+        return <SettingsEditor />;
       default:
         return <DashboardOverview />;
     }

@@ -1,8 +1,9 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Menu, X, Shield } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Link } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 
 interface NavigationProps {
   activeSection: string;
@@ -10,14 +11,59 @@ interface NavigationProps {
 
 const Navigation = ({ activeSection }: NavigationProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [sectionVisibility, setSectionVisibility] = useState({
+    show_education: true,
+    show_gallery: true,
+    show_blog: true
+  });
   const { user, isAdmin, signOut } = useAuth();
 
-  const navItems = [
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('website_content')
+          .select('content_key, content_value')
+          .eq('section', 'settings');
+
+        if (error) throw error;
+
+        const settings = data.reduce((acc, item) => {
+          acc[item.content_key] = typeof item.content_value === 'string' 
+            ? JSON.parse(item.content_value) 
+            : item.content_value;
+          return acc;
+        }, {} as any);
+
+        setSectionVisibility(prev => ({
+          ...prev,
+          ...settings
+        }));
+      } catch (error) {
+        console.error('Error fetching settings:', error);
+      }
+    };
+
+    fetchSettings();
+  }, []);
+
+  const baseNavItems = [
     { id: 'hero', label: 'Home' },
     { id: 'about', label: 'About' },
-    { id: 'skills', label: 'Skills' },
-    { id: 'projects', label: 'Projects' },
-    { id: 'contact', label: 'Contact' },
+  ];
+
+  const conditionalNavItems = [
+    { id: 'education', label: 'Education', show: sectionVisibility.show_education },
+    { id: 'skills', label: 'Skills', show: true },
+    { id: 'projects', label: 'Projects', show: true },
+    { id: 'gallery', label: 'Gallery', show: sectionVisibility.show_gallery },
+    { id: 'blog', label: 'Blog', show: sectionVisibility.show_blog },
+    { id: 'contact', label: 'Contact', show: true },
+  ];
+
+  const navItems = [
+    ...baseNavItems,
+    ...conditionalNavItems.filter(item => item.show)
   ];
 
   const scrollToSection = (sectionId: string) => {

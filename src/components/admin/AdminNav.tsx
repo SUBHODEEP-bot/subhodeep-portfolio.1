@@ -8,6 +8,10 @@ import {
   Award, 
   Mail, 
   Home,
+  GraduationCap,
+  Image,
+  BookOpen,
+  Settings,
   LogOut
 } from 'lucide-react';
 
@@ -23,9 +27,13 @@ const AdminNav = ({ activeSection, setActiveSection }: AdminNavProps) => {
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'hero', label: 'Hero Section', icon: Home },
     { id: 'about', label: 'About Me', icon: User },
+    { id: 'education', label: 'Education', icon: GraduationCap },
     { id: 'skills', label: 'Skills', icon: Award },
     { id: 'projects', label: 'Projects', icon: Briefcase },
+    { id: 'gallery', label: 'Gallery', icon: Image },
+    { id: 'blog', label: 'Blog', icon: BookOpen },
     { id: 'contact', label: 'Contact', icon: Mail },
+    { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
   return (
@@ -36,24 +44,39 @@ const AdminNav = ({ activeSection, setActiveSection }: AdminNavProps) => {
             Admin Panel
           </div>
 
-          <div className="hidden md:flex space-x-4">
+          <div className="hidden lg:flex space-x-2">
             {navItems.map((item) => {
               const IconComponent = item.icon;
               return (
                 <button
                   key={item.id}
                   onClick={() => setActiveSection(item.id)}
-                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
+                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-xs font-medium transition-colors duration-200 ${
                     activeSection === item.id
                       ? 'bg-cyan-500 text-white'
                       : 'text-white hover:text-cyan-300'
                   }`}
                 >
-                  <IconComponent size={16} />
+                  <IconComponent size={14} />
                   <span>{item.label}</span>
                 </button>
               );
             })}
+          </div>
+
+          {/* Mobile dropdown menu */}
+          <div className="lg:hidden">
+            <select
+              value={activeSection}
+              onChange={(e) => setActiveSection(e.target.value)}
+              className="bg-white/10 border border-white/20 text-white rounded-lg px-3 py-2 text-sm"
+            >
+              {navItems.map((item) => (
+                <option key={item.id} value={item.id} className="bg-slate-800">
+                  {item.label}
+                </option>
+              ))}
+            </select>
           </div>
 
           <button
