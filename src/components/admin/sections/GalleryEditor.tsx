@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Save, Plus, Trash2, Upload, RefreshCw, Image as ImageIcon, Video } from 'lucide-react';
+import { Save, Plus, Trash2, Upload, RefreshCw, Image as ImageIcon, Video, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface GalleryItem {
@@ -14,11 +14,20 @@ interface GalleryItem {
   featured: boolean;
 }
 
+interface UploadProgress {
+  file: File;
+  progress: number;
+  uploading: boolean;
+  error?: string;
+}
+
 const GalleryEditor = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [gallery, setGallery] = useState<GalleryItem[]>([]);
+  const [uploads, setUploads] = useState<UploadProgress[]>([]);
+  const [dragActive, setDragActive] = useState(false);
 
   useEffect(() => {
     fetchGallery();
@@ -51,6 +60,139 @@ const GalleryEditor = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFiles(Array.from(e.dataTransfer.files));
+    }
+  };
+
+  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      handleFiles(Array.from(e.target.files));
+    }
+  };
+
+  const handleFiles = (files: File[]) => {
+    const validFiles = files.filter(file => {
+      const isImage = file.type.startsWith('image/');
+      const isVideo = file.type.startsWith('video/');
+      const isValidSize = file.size <= 100 * 1024 * 1024; // 100MB limit
+      
+      if (!isImage && !isVideo) {
+        toast({
+          title: "Invalid file type",
+          description: `${file.name} is not a valid image or video file`,
+          variant: "destructive"
+        });
+        return false;
+      }
+      
+      if (!isValidSize) {
+        toast({
+          title: "File too large",
+          description: `${file.name} is larger than 100MB`,
+          variant: "destructive"
+        });
+        return false;
+      }
+      
+      return true;
+    });
+
+    validFiles.forEach(uploadFile);
+  };
+
+  const uploadFile = async (file: File) => {
+    const uploadId = Date.now() + Math.random();
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${uploadId}.${fileExt}`;
+    const mediaType = file.type.startsWith('image/') ? 'image' : 'video';
+
+    // Add to uploads tracking
+    setUploads(prev => [...prev, {
+      file,
+      progress: 0,
+      uploading: true
+    }]);
+
+    try {
+      // Upload to Supabase Storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('gallery')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('gallery')
+        .getPublicUrl(fileName);
+
+      // For videos, we'll use the same URL as thumbnail for now
+      // In a real app, you might want to generate actual thumbnails
+      const thumbnailUrl = mediaType === 'video' ? publicUrl : '';
+
+      // Create gallery item
+      const newItem: GalleryItem = {
+        id: '',
+        title: file.name.split('.')[0].replace(/[-_]/g, ' '),
+        description: '',
+        media_url: publicUrl,
+        media_type: mediaType,
+        thumbnail_url: thumbnailUrl,
+        featured: false
+      };
+
+      // Add to gallery state
+      setGallery(prev => [newItem, ...prev]);
+
+      // Remove from uploads
+      setUploads(prev => prev.filter(upload => upload.file !== file));
+
+      toast({
+        title: "Upload successful",
+        description: `${file.name} has been uploaded successfully!`
+      });
+
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      
+      // Update upload with error
+      setUploads(prev => prev.map(upload => 
+        upload.file === file 
+          ? { ...upload, uploading: false, error: 'Upload failed' }
+          : upload
+      ));
+      
+      toast({
+        title: "Upload failed",
+        description: `Failed to upload ${file.name}`,
+        variant: "destructive"
+      });
+    }
+  };
+
+  const removeUpload = (file: File) => {
+    setUploads(prev => prev.filter(upload => upload.file !== file));
   };
 
   const addGalleryItem = () => {
@@ -170,6 +312,75 @@ const GalleryEditor = () => {
         <p className="text-gray-300">Manage your photos and videos</p>
       </div>
 
+      {/* File Upload Area */}
+      <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
+        <h2 className="text-2xl font-semibold text-white mb-6">Upload Media</h2>
+        
+        <div
+          className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+            dragActive 
+              ? 'border-cyan-400 bg-cyan-400/10' 
+              : 'border-white/30 hover:border-white/50'
+          }`}
+          onDragEnter={handleDrag}
+          onDragLeave={handleDrag}
+          onDragOver={handleDrag}
+          onDrop={handleDrop}
+        >
+          <Upload className="mx-auto mb-4 text-white/60" size={48} />
+          <p className="text-white mb-2">Drag and drop your images or videos here</p>
+          <p className="text-gray-400 text-sm mb-4">Support for JPG, PNG, GIF, MP4, MOV, AVI (max 100MB)</p>
+          
+          <label className="inline-flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold rounded-lg hover:from-cyan-600 hover:to-blue-700 transition-all duration-300 cursor-pointer">
+            <Upload size={20} />
+            <span>Browse Files</span>
+            <input
+              type="file"
+              multiple
+              accept="image/*,video/*"
+              onChange={handleFileInput}
+              className="hidden"
+            />
+          </label>
+        </div>
+
+        {/* Upload Progress */}
+        {uploads.length > 0 && (
+          <div className="mt-6 space-y-3">
+            <h3 className="text-lg font-semibold text-white">Uploading Files</h3>
+            {uploads.map((upload, index) => (
+              <div key={index} className="bg-white/5 rounded-lg p-4 border border-white/10">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-white text-sm truncate">{upload.file.name}</span>
+                  <button
+                    onClick={() => removeUpload(upload.file)}
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+                
+                {upload.uploading ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="flex-1 bg-white/10 rounded-full h-2">
+                      <div 
+                        className="bg-gradient-to-r from-cyan-500 to-blue-600 h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${upload.progress}%` }}
+                      />
+                    </div>
+                    <RefreshCw className="animate-spin text-cyan-400" size={16} />
+                  </div>
+                ) : upload.error ? (
+                  <p className="text-red-400 text-sm">{upload.error}</p>
+                ) : (
+                  <p className="text-green-400 text-sm">Upload complete!</p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-semibold text-white">Gallery Items</h2>
@@ -178,7 +389,7 @@ const GalleryEditor = () => {
             className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-300"
           >
             <Plus size={20} />
-            <span>Add Media</span>
+            <span>Add Manual Entry</span>
           </button>
         </div>
 
@@ -195,6 +406,25 @@ const GalleryEditor = () => {
                   {item.media_type === 'image' ? 'Image' : 'Video'} #{index + 1}
                 </h3>
               </div>
+
+              {/* Preview */}
+              {item.media_url && (
+                <div className="mb-4">
+                  {item.media_type === 'image' ? (
+                    <img
+                      src={item.media_url}
+                      alt={item.title}
+                      className="w-full h-32 object-cover rounded-lg"
+                    />
+                  ) : (
+                    <video
+                      src={item.media_url}
+                      className="w-full h-32 object-cover rounded-lg"
+                      controls
+                    />
+                  )}
+                </div>
+              )}
 
               <div className="space-y-4">
                 <div>
