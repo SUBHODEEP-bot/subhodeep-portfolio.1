@@ -2,38 +2,40 @@
 import React, { useState } from 'react';
 import { Lock, User, Shield, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
-interface AdminLoginProps {
-  onLogin: () => void;
-}
-
-const AdminLogin = ({ onLogin }: AdminLoginProps) => {
+const AdminLogin = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    setTimeout(() => {
-      if (password === 'Pal@2005') {
-        localStorage.setItem('admin_authenticated', 'true');
-        onLogin();
-        toast({
-          title: "Welcome back, Subhodeep! 🎉",
-          description: "Successfully logged into your admin panel"
-        });
-      } else {
-        toast({
-          title: "Access Denied 🚫",
-          description: "Invalid password. Only Subhodeep Pal can access this panel.",
-          variant: "destructive"
-        });
-      }
-      setLoading(false);
-    }, 1000);
+    const { error } = await supabase.auth.signInWithPassword({
+      // Per your design, only one user (the owner) can log in.
+      // The email is tied to the 'admin' role in the database.
+      email: 'subhodeeppal2005@gmail.com',
+      password: password,
+    });
+    
+    setLoading(false);
+
+    if (error) {
+      toast({
+        title: "Access Denied 🚫",
+        description: error.message || "Invalid credentials. Only Subhodeep Pal can access this panel.",
+        variant: "destructive"
+      });
+    } else {
+      toast({
+        title: "Login Successful",
+        description: "Welcome back, Subhodeep! Redirecting to the dashboard..."
+      });
+      // The Admin page will automatically show the dashboard on successful login.
+    }
   };
 
   return (
