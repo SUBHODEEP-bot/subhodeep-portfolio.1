@@ -1,148 +1,131 @@
 
 import React, { useEffect, useState } from 'react';
-import { Code, Database, Globe, Palette, Brain, Users } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import * as Icons from 'lucide-react';
+
+interface Skill {
+  id: string;
+  name: string;
+  category: string;
+  proficiency: number;
+  icon_name: string;
+}
 
 const Skills = () => {
-  const [isVisible, setIsVisible] = useState(false);
-
-  const skillCategories = [
-    {
-      title: 'Programming Languages',
-      icon: Code,
-      skills: [
-        { name: 'Python', level: 90 },
-        { name: 'JavaScript', level: 85 },
-        { name: 'Java', level: 80 },
-        { name: 'C++', level: 75 },
-        { name: 'TypeScript', level: 70 },
-      ]
-    },
-    {
-      title: 'Web Technologies',
-      icon: Globe,
-      skills: [
-        { name: 'React', level: 85 },
-        { name: 'Node.js', level: 80 },
-        { name: 'HTML/CSS', level: 90 },
-        { name: 'Next.js', level: 75 },
-        { name: 'Express.js', level: 70 },
-      ]
-    },
-    {
-      title: 'Database & Tools',
-      icon: Database,
-      skills: [
-        { name: 'MySQL', level: 80 },
-        { name: 'MongoDB', level: 75 },
-        { name: 'Git/GitHub', level: 85 },
-        { name: 'Docker', level: 65 },
-        { name: 'AWS', level: 60 },
-      ]
-    },
-    {
-      title: 'Design & UI/UX',
-      icon: Palette,
-      skills: [
-        { name: 'Figma', level: 75 },
-        { name: 'Adobe XD', level: 70 },
-        { name: 'Photoshop', level: 65 },
-        { name: 'Tailwind CSS', level: 85 },
-        { name: 'Material-UI', level: 80 },
-      ]
-    },
-    {
-      title: 'AI & Machine Learning',
-      icon: Brain,
-      skills: [
-        { name: 'TensorFlow', level: 70 },
-        { name: 'PyTorch', level: 65 },
-        { name: 'Scikit-learn', level: 75 },
-        { name: 'Pandas', level: 80 },
-        { name: 'NumPy', level: 85 },
-      ]
-    },
-    {
-      title: 'Soft Skills',
-      icon: Users,
-      skills: [
-        { name: 'Leadership', level: 85 },
-        { name: 'Communication', level: 90 },
-        { name: 'Problem Solving', level: 95 },
-        { name: 'Team Work', level: 90 },
-        { name: 'Adaptability', level: 85 },
-      ]
-    }
-  ];
+  const [skills, setSkills] = useState<Skill[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-        }
-      },
-      { threshold: 0.1 }
-    );
+    const fetchSkills = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('skills')
+          .select('*')
+          .order('category, name');
 
-    const element = document.getElementById('skills');
-    if (element) {
-      observer.observe(element);
-    }
-
-    return () => {
-      if (element) {
-        observer.unobserve(element);
+        if (error) throw error;
+        setSkills(data || []);
+      } catch (error) {
+        console.error('Error fetching skills:', error);
+      } finally {
+        setLoading(false);
       }
     };
+
+    fetchSkills();
   }, []);
+
+  const getSkillsByCategory = (category: string) => {
+    return skills.filter(skill => skill.category === category);
+  };
+
+  const getIconComponent = (iconName: string) => {
+    const IconComponent = (Icons as any)[iconName];
+    return IconComponent || Icons.Code;
+  };
+
+  const categories = [
+    { key: 'programming', title: 'Programming Languages', color: 'from-blue-500 to-cyan-500' },
+    { key: 'tools', title: 'Tools & Technologies', color: 'from-green-500 to-emerald-500' },
+    { key: 'soft', title: 'Soft Skills', color: 'from-purple-500 to-pink-500' }
+  ];
+
+  if (loading) {
+    return (
+      <div className="relative py-20 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center">
+            <div className="animate-pulse text-white text-xl">Loading skills...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative py-20 px-4">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            Skills & Technologies
+            Skills & Expertise
           </h2>
           <div className="w-24 h-1 bg-gradient-to-r from-cyan-400 to-purple-500 mx-auto mb-6"></div>
-          <p className="text-gray-300 text-lg max-w-2xl mx-auto">
-            A comprehensive overview of my technical expertise and soft skills developed through continuous learning and hands-on experience.
+          <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+            A comprehensive overview of my technical skills, tools I work with, and soft skills that drive my success
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {skillCategories.map((category, categoryIndex) => (
-            <div
-              key={category.title}
-              className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300"
-            >
-              <div className="flex items-center mb-6">
-                <div className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full flex items-center justify-center mr-4">
-                  <category.icon className="text-white" size={24} />
-                </div>
-                <h3 className="text-xl font-semibold text-white">{category.title}</h3>
-              </div>
+        <div className="space-y-16">
+          {categories.map((category) => {
+            const categorySkills = getSkillsByCategory(category.key);
+            
+            if (categorySkills.length === 0) return null;
 
-              <div className="space-y-4">
-                {category.skills.map((skill, skillIndex) => (
-                  <div key={skill.name}>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-gray-300 font-medium">{skill.name}</span>
-                      <span className="text-cyan-400 text-sm">{skill.level}%</span>
-                    </div>
-                    <div className="w-full bg-gray-700 rounded-full h-2">
+            return (
+              <div key={category.key} className="space-y-8">
+                <div className="text-center">
+                  <h3 className="text-3xl font-bold text-white mb-4">{category.title}</h3>
+                  <div className={`w-16 h-1 bg-gradient-to-r ${category.color} mx-auto`}></div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {categorySkills.map((skill) => {
+                    const IconComponent = getIconComponent(skill.icon_name);
+                    
+                    return (
                       <div
-                        className="bg-gradient-to-r from-cyan-500 to-purple-500 h-2 rounded-full transition-all duration-1000 ease-out"
-                        style={{
-                          width: isVisible ? `${skill.level}%` : '0%',
-                          transitionDelay: `${categoryIndex * 200 + skillIndex * 100}ms`
-                        }}
-                      ></div>
-                    </div>
-                  </div>
-                ))}
+                        key={skill.id}
+                        className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 group"
+                      >
+                        <div className="flex items-center space-x-4 mb-4">
+                          <div className={`w-12 h-12 bg-gradient-to-r ${category.color} rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
+                            <IconComponent className="text-white" size={24} />
+                          </div>
+                          <div>
+                            <h4 className="text-xl font-semibold text-white">{skill.name}</h4>
+                            <p className="text-sm text-gray-400 capitalize">{skill.category}</p>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-300">Proficiency</span>
+                            <span className="text-sm font-semibold text-cyan-400">{skill.proficiency}%</span>
+                          </div>
+                          <div className="w-full bg-gray-700 rounded-full h-2">
+                            <div
+                              className={`h-2 bg-gradient-to-r ${category.color} rounded-full transition-all duration-1000 ease-out`}
+                              style={{ width: `${skill.proficiency}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

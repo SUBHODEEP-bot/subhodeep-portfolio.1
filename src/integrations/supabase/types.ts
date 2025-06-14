@@ -9,7 +9,129 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          full_name: string | null
+          id: string
+          role: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id: string
+          role?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          role?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      projects: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          featured: boolean | null
+          github_url: string | null
+          id: string
+          image_url: string | null
+          live_url: string | null
+          tech_stack: string[] | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          featured?: boolean | null
+          github_url?: string | null
+          id?: string
+          image_url?: string | null
+          live_url?: string | null
+          tech_stack?: string[] | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          featured?: boolean | null
+          github_url?: string | null
+          id?: string
+          image_url?: string | null
+          live_url?: string | null
+          tech_stack?: string[] | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      skills: {
+        Row: {
+          category: string
+          created_at: string | null
+          icon_name: string | null
+          id: string
+          name: string
+          proficiency: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          icon_name?: string | null
+          id?: string
+          name: string
+          proficiency?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          icon_name?: string | null
+          id?: string
+          name?: string
+          proficiency?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      website_content: {
+        Row: {
+          content_key: string
+          content_value: Json
+          created_at: string | null
+          id: string
+          section: string
+          updated_at: string | null
+        }
+        Insert: {
+          content_key: string
+          content_value: Json
+          created_at?: string | null
+          id?: string
+          section: string
+          updated_at?: string | null
+        }
+        Update: {
+          content_key?: string
+          content_value?: Json
+          created_at?: string | null
+          id?: string
+          section?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

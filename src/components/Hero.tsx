@@ -1,22 +1,52 @@
 
 import React, { useEffect, useState } from 'react';
 import { ArrowDown } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const Hero = () => {
   const [displayText, setDisplayText] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentRole, setCurrentRole] = useState(0);
-
-  const roles = [
-    'Engineering Student',
-    'Innovator',
-    'Future Technologist',
-    'Problem Solver',
-    'Creative Thinker'
-  ];
+  const [heroData, setHeroData] = useState({
+    name: 'Subhodeep Pal',
+    title: 'Engineering Student | Innovator | Future Technologist',
+    description: 'Passionate about creating innovative solutions that bridge technology and human needs. Building the future, one line of code at a time.'
+  });
 
   useEffect(() => {
-    const currentRoleText = roles[currentRole];
+    const fetchHeroData = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('website_content')
+          .select('content_key, content_value')
+          .eq('section', 'hero');
+
+        if (error) throw error;
+
+        const heroContent = data.reduce((acc, item) => {
+          acc[item.content_key] = JSON.parse(item.content_value);
+          return acc;
+        }, {} as any);
+
+        if (heroContent.name || heroContent.title || heroContent.description) {
+          setHeroData({
+            name: heroContent.name || heroData.name,
+            title: heroContent.title || heroData.title,
+            description: heroContent.description || heroData.description
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching hero data:', error);
+      }
+    };
+
+    fetchHeroData();
+  }, []);
+
+  const roles = heroData.title.split(' | ').filter(role => role.trim());
+
+  useEffect(() => {
+    const currentRoleText = roles[currentRole] || 'Engineering Student';
     
     if (currentIndex < currentRoleText.length) {
       const timeout = setTimeout(() => {
@@ -58,7 +88,7 @@ const Hero = () => {
 
         {/* Name and Dynamic Title */}
         <h1 className="text-5xl md:text-7xl font-bold text-white mb-4">
-          Subhodeep Pal
+          {heroData.name}
         </h1>
         
         <div className="text-2xl md:text-3xl text-cyan-300 mb-8 h-12 flex items-center justify-center">
@@ -70,8 +100,7 @@ const Hero = () => {
 
         {/* Description */}
         <p className="text-lg md:text-xl text-gray-300 mb-12 max-w-2xl mx-auto leading-relaxed">
-          Passionate about creating innovative solutions that bridge technology and human needs. 
-          Building the future, one line of code at a time.
+          {heroData.description}
         </p>
 
         {/* CTA Buttons */}

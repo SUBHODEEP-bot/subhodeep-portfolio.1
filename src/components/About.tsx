@@ -1,8 +1,43 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Calendar, MapPin, Globe, Quote } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const About = () => {
+  const [aboutData, setAboutData] = useState({
+    bio: "Hello! I'm Subhodeep Pal, a passionate engineering student with an insatiable curiosity for technology and innovation. My journey in the world of engineering began with a simple fascination for how things work and has evolved into a deep commitment to creating solutions that matter.",
+    quote: "Innovation distinguishes between a leader and a follower. I believe in creating technology that makes a difference."
+  });
+
+  useEffect(() => {
+    const fetchAboutData = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('website_content')
+          .select('content_key, content_value')
+          .eq('section', 'about');
+
+        if (error) throw error;
+
+        const aboutContent = data.reduce((acc, item) => {
+          acc[item.content_key] = JSON.parse(item.content_value);
+          return acc;
+        }, {} as any);
+
+        if (aboutContent.bio || aboutContent.quote) {
+          setAboutData({
+            bio: aboutContent.bio || aboutData.bio,
+            quote: aboutContent.quote || aboutData.quote
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching about data:', error);
+      }
+    };
+
+    fetchAboutData();
+  }, []);
+
   return (
     <div className="relative py-20 px-4">
       <div className="max-w-6xl mx-auto">
@@ -41,7 +76,7 @@ const About = () => {
             <div className="bg-gradient-to-r from-purple-500/20 to-cyan-500/20 backdrop-blur-md rounded-2xl p-8 border border-white/20">
               <Quote className="text-cyan-400 mb-4" size={32} />
               <blockquote className="text-xl text-white italic leading-relaxed">
-                "Innovation distinguishes between a leader and a follower. I believe in creating technology that makes a difference."
+                "{aboutData.quote}"
               </blockquote>
               <cite className="text-cyan-300 mt-4 block">- My Philosophy</cite>
             </div>
@@ -52,26 +87,8 @@ const About = () => {
             <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
               <h3 className="text-2xl font-semibold text-white mb-6">My Journey</h3>
               
-              <div className="text-gray-300 leading-relaxed space-y-4">
-                <p>
-                  Hello! I'm Subhodeep Pal, a passionate engineering student with an insatiable curiosity 
-                  for technology and innovation. My journey in the world of engineering began with a simple 
-                  fascination for how things work and has evolved into a deep commitment to creating solutions 
-                  that matter.
-                </p>
-                
-                <p>
-                  Currently pursuing my engineering degree, I've immersed myself in various domains of 
-                  technology, from software development to system design. I believe that the intersection 
-                  of creativity and technology is where the most impactful innovations are born.
-                </p>
-                
-                <p>
-                  When I'm not coding or studying, you'll find me exploring new technologies, participating 
-                  in hackathons, or contributing to open-source projects. I'm always eager to learn, grow, 
-                  and collaborate with like-minded individuals who share my passion for making a positive 
-                  impact through technology.
-                </p>
+              <div className="text-gray-300 leading-relaxed">
+                <p>{aboutData.bio}</p>
               </div>
             </div>
 

@@ -1,203 +1,161 @@
-import React, { useState } from 'react';
-import { ExternalLink, Github, Eye } from 'lucide-react';
+
+import React, { useEffect, useState } from 'react';
+import { ExternalLink, Github, Star } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+
+interface Project {
+  id: string;
+  title: string;
+  description: string;
+  tech_stack: string[];
+  github_url: string;
+  live_url: string;
+  image_url: string;
+  featured: boolean;
+}
 
 const Projects = () => {
-  const [hoveredProject, setHoveredProject] = useState<number | null>(null);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const projects = [
-    {
-      id: 1,
-      title: 'AI-Powered Task Manager',
-      description: 'A smart task management application that uses machine learning to predict task completion times and optimize workflows.',
-      techStack: ['React', 'Node.js', 'Python', 'TensorFlow', 'MongoDB'],
-      image: '/placeholder.svg',
-      liveUrl: '#',
-      githubUrl: '#',
-      featured: true
-    },
-    {
-      id: 2,
-      title: 'Real-time Collaboration Platform',
-      description: 'A web-based platform for real-time collaboration with video conferencing, document sharing, and project management features.',
-      techStack: ['Next.js', 'Socket.io', 'WebRTC', 'PostgreSQL', 'Redis'],
-      image: '/placeholder.svg',
-      liveUrl: '#',
-      githubUrl: '#',
-      featured: true
-    },
-    {
-      id: 3,
-      title: 'Smart Home IoT Dashboard',
-      description: 'An IoT dashboard for monitoring and controlling smart home devices with real-time data visualization.',
-      techStack: ['Vue.js', 'Arduino', 'MQTT', 'InfluxDB', 'Grafana'],
-      image: '/placeholder.svg',
-      liveUrl: '#',
-      githubUrl: '#',
-      featured: false
-    },
-    {
-      id: 4,
-      title: 'E-commerce Mobile App',
-      description: 'A cross-platform mobile application for e-commerce with payment integration and inventory management.',
-      techStack: ['React Native', 'Firebase', 'Stripe', 'Redux', 'Node.js'],
-      image: '/placeholder.svg',
-      liveUrl: '#',
-      githubUrl: '#',
-      featured: false
-    },
-    {
-      id: 5,
-      title: 'Blockchain Voting System',
-      description: 'A secure and transparent voting system built on blockchain technology to ensure election integrity.',
-      techStack: ['Solidity', 'Web3.js', 'Ethereum', 'React', 'Truffle'],
-      image: '/placeholder.svg',
-      liveUrl: '#',
-      githubUrl: '#',
-      featured: false
-    },
-    {
-      id: 6,
-      title: 'Data Visualization Tool',
-      description: 'An interactive data visualization tool for analyzing large datasets with custom chart types and filters.',
-      techStack: ['D3.js', 'Python', 'Flask', 'Pandas', 'Chart.js'],
-      image: '/placeholder.svg',
-      liveUrl: '#',
-      githubUrl: '#',
-      featured: false
-    }
-  ];
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('projects')
+          .select('*')
+          .order('featured', { ascending: false })
+          .order('created_at', { ascending: false });
 
-  const featuredProjects = projects.filter(project => project.featured);
-  const otherProjects = projects.filter(project => !project.featured);
+        if (error) throw error;
+        setProjects(data || []);
+      } catch (error) {
+        console.error('Error fetching projects:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProjects();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="relative py-20 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center">
+            <div className="animate-pulse text-white text-xl">Loading projects...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative py-20 px-4">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            Project Portfolio
+            Featured Projects
           </h2>
           <div className="w-24 h-1 bg-gradient-to-r from-cyan-400 to-purple-500 mx-auto mb-6"></div>
-          <p className="text-gray-300 text-lg max-w-2xl mx-auto">
-            A showcase of my work spanning various technologies and domains, from AI and web development to IoT and blockchain.
+          <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+            A showcase of my recent work, featuring innovative solutions and cutting-edge technologies
           </p>
         </div>
 
-        {/* Featured Projects */}
-        <div className="mb-16">
-          <h3 className="text-2xl font-semibold text-white mb-8 text-center">Featured Projects</h3>
-          <div className="grid md:grid-cols-2 gap-8">
-            {featuredProjects.map((project) => (
+        {projects.length === 0 ? (
+          <div className="text-center text-gray-400 py-12">
+            <p className="text-xl">No projects available yet.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {projects.map((project) => (
               <div
                 key={project.id}
-                className="group relative bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 transform hover:scale-105"
-                onMouseEnter={() => setHoveredProject(project.id)}
-                onMouseLeave={() => setHoveredProject(null)}
+                className="bg-white/10 backdrop-blur-md rounded-2xl overflow-hidden border border-white/20 hover:bg-white/15 transition-all duration-300 group"
               >
-                <div className="aspect-video bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg mb-6 overflow-hidden relative">
-                  <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 to-purple-500/20"></div>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Eye className="text-white/60" size={48} />
-                  </div>
-                  {hoveredProject === project.id && (
-                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center space-x-4 transition-all duration-300">
-                      <a
-                        href={project.liveUrl}
-                        className="bg-cyan-500 hover:bg-cyan-600 text-white p-3 rounded-full transition-colors"
-                      >
-                        <ExternalLink size={20} />
-                      </a>
-                      <a
-                        href={project.githubUrl}
-                        className="bg-purple-500 hover:bg-purple-600 text-white p-3 rounded-full transition-colors"
-                      >
-                        <Github size={20} />
-                      </a>
+                {/* Project Image */}
+                <div className="relative h-48 bg-gradient-to-br from-gray-800 to-gray-900 overflow-hidden">
+                  {project.featured && (
+                    <div className="absolute top-4 right-4 z-10">
+                      <div className="flex items-center space-x-1 bg-yellow-500 text-black px-2 py-1 rounded-full text-xs font-semibold">
+                        <Star size={12} fill="currentColor" />
+                        <span>Featured</span>
+                      </div>
                     </div>
                   )}
-                </div>
-
-                <h4 className="text-xl font-semibold text-white mb-3">{project.title}</h4>
-                <p className="text-gray-300 mb-4 leading-relaxed">{project.description}</p>
-
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {project.techStack.map((tech) => (
-                    <span
-                      key={tech}
-                      className="px-3 py-1 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 text-cyan-300 text-sm rounded-full border border-cyan-500/30"
-                    >
-                      {tech}
-                    </span>
-                  ))}
-                </div>
-
-                <div className="flex space-x-4">
-                  <a
-                    href={project.liveUrl}
-                    className="flex items-center space-x-2 text-cyan-400 hover:text-cyan-300 transition-colors"
-                  >
-                    <ExternalLink size={16} />
-                    <span>Live Demo</span>
-                  </a>
-                  <a
-                    href={project.githubUrl}
-                    className="flex items-center space-x-2 text-purple-400 hover:text-purple-300 transition-colors"
-                  >
-                    <Github size={16} />
-                    <span>Source Code</span>
-                  </a>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Other Projects */}
-        <div>
-          <h3 className="text-2xl font-semibold text-white mb-8 text-center">Other Projects</h3>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {otherProjects.map((project) => (
-              <div
-                key={project.id}
-                className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300"
-              >
-                <h4 className="text-lg font-semibold text-white mb-2">{project.title}</h4>
-                <p className="text-gray-300 text-sm mb-4 leading-relaxed">{project.description}</p>
-
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {project.techStack.slice(0, 3).map((tech) => (
-                    <span
-                      key={tech}
-                      className="px-2 py-1 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 text-cyan-300 text-xs rounded-full border border-cyan-500/30"
-                    >
-                      {tech}
-                    </span>
-                  ))}
-                  {project.techStack.length > 3 && (
-                    <span className="px-2 py-1 text-gray-400 text-xs">
-                      +{project.techStack.length - 3} more
-                    </span>
+                  
+                  {project.image_url ? (
+                    <img
+                      src={project.image_url}
+                      alt={project.title}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <div className="text-6xl font-bold text-gray-600">
+                        {project.title.charAt(0)}
+                      </div>
+                    </div>
                   )}
+                  
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
                 </div>
 
-                <div className="flex space-x-4">
-                  <a
-                    href={project.liveUrl}
-                    className="text-cyan-400 hover:text-cyan-300 transition-colors"
-                  >
-                    <ExternalLink size={14} />
-                  </a>
-                  <a
-                    href={project.githubUrl}
-                    className="text-purple-400 hover:text-purple-300 transition-colors"
-                  >
-                    <Github size={14} />
-                  </a>
+                {/* Project Content */}
+                <div className="p-6">
+                  <h3 className="text-xl font-bold text-white mb-3 group-hover:text-cyan-400 transition-colors">
+                    {project.title}
+                  </h3>
+                  
+                  <p className="text-gray-300 mb-4 line-clamp-3">
+                    {project.description}
+                  </p>
+
+                  {/* Tech Stack */}
+                  <div className="flex flex-wrap gap-2 mb-6">
+                    {project.tech_stack.map((tech, index) => (
+                      <span
+                        key={index}
+                        className="px-3 py-1 bg-blue-500/20 text-blue-300 rounded-full text-xs font-medium"
+                      >
+                        {tech}
+                      </span>
+                    ))}
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex space-x-3">
+                    {project.github_url && (
+                      <a
+                        href={project.github_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center space-x-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors flex-1 justify-center"
+                      >
+                        <Github size={16} />
+                        <span>Code</span>
+                      </a>
+                    )}
+                    
+                    {project.live_url && (
+                      <a
+                        href={project.live_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white rounded-lg transition-all duration-300 flex-1 justify-center"
+                      >
+                        <ExternalLink size={16} />
+                        <span>Demo</span>
+                      </a>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
