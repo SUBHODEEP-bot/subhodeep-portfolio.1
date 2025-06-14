@@ -1,43 +1,60 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { formatDistanceToNow } from 'date-fns';
 import { 
   LayoutDashboard, 
   Users, 
   Briefcase, 
-  Award, 
-  Globe,
-  TrendingUp,
-  Clock,
-  Activity,
+  Award,
   Eye,
-  Calendar
+  Calendar,
+  Activity,
+  Clock,
+  TrendingUp,
 } from 'lucide-react';
 
-const DashboardOverview = () => {
+interface DashboardOverviewProps {
+  setActiveSection: (section: string) => void;
+}
+
+interface ActivityLog {
+  action: string;
+  created_at: string;
+  details?: { name?: string };
+}
+
+const DashboardOverview = ({ setActiveSection }: DashboardOverviewProps) => {
   const [stats, setStats] = useState({
     projects: 0,
     skills: 0,
-    totalViews: 1250,
-    uptime: '99.9%',
+    totalViews: 0,
     lastUpdated: new Date().toLocaleDateString()
   });
+  const [recentActivity, setRecentActivity] = useState<ActivityLog[]>([]);
 
   useEffect(() => {
-    const fetchStats = async () => {
-      const [projectsResult, skillsResult] = await Promise.all([
+    const fetchStatsAndActivity = async () => {
+      const [projectsResult, skillsResult, viewsResult, activityResult] = await Promise.all([
         supabase.from('projects').select('id', { count: 'exact' }),
-        supabase.from('skills').select('id', { count: 'exact' })
+        supabase.from('skills').select('id', { count: 'exact' }),
+        supabase.from('page_views').select('id', { count: 'exact' }),
+        supabase.from('activity_log').select('action, created_at, details').order('created_at', { ascending: false }).limit(5)
       ]);
 
       setStats(prev => ({
         ...prev,
         projects: projectsResult.count || 0,
-        skills: skillsResult.count || 0
+        skills: skillsResult.count || 0,
+        totalViews: viewsResult.count || 0,
       }));
+
+      if (activityResult.data) {
+        setRecentActivity(activityResult.data as ActivityLog[]);
+      }
     };
 
-    fetchStats();
+    fetchStatsAndActivity();
   }, []);
 
   const statCards = [
@@ -47,7 +64,7 @@ const DashboardOverview = () => {
       value: stats.projects, 
       color: 'from-blue-500 to-blue-600',
       bgColor: 'from-blue-50 to-blue-100',
-      change: '+2 this month'
+      change: 'Total projects'
     },
     { 
       icon: Award, 
@@ -55,7 +72,7 @@ const DashboardOverview = () => {
       value: stats.skills, 
       color: 'from-emerald-500 to-emerald-600',
       bgColor: 'from-emerald-50 to-emerald-100',
-      change: '+5 new skills'
+      change: 'Total skills'
     },
     { 
       icon: Eye, 
@@ -63,16 +80,8 @@ const DashboardOverview = () => {
       value: stats.totalViews, 
       color: 'from-purple-500 to-purple-600',
       bgColor: 'from-purple-50 to-purple-100',
-      change: '+12% this week'
+      change: 'Since tracking began'
     },
-    { 
-      icon: Globe, 
-      label: 'Uptime', 
-      value: stats.uptime, 
-      color: 'from-orange-500 to-orange-600',
-      bgColor: 'from-orange-50 to-orange-100',
-      change: 'Excellent'
-    }
   ];
 
   const quickActions = [
@@ -106,12 +115,22 @@ const DashboardOverview = () => {
     }
   ];
 
-  const recentActivity = [
-    { action: 'Updated About section', time: '2 hours ago', icon: Activity },
-    { action: 'Added new project "Portfolio Website"', time: '1 day ago', icon: Briefcase },
-    { action: 'Modified skills section', time: '3 days ago', icon: Award },
-    { action: 'Uploaded gallery images', time: '1 week ago', icon: Users }
-  ];
+  const activityIcons: { [key: string]: React.ElementType } = {
+    'skill': Award,
+    'project': Briefcase,
+    'about': Users,
+    'default': Activity
+  };
+  
+  const getActivityIcon = (action: string) => {
+    const lowerCaseAction = action.toLowerCase();
+    for (const key in activityIcons) {
+      if (lowerCaseAction.includes(key)) {
+        return activityIcons[key];
+      }
+    }
+    return activityIcons.default;
+  };
 
   return (
     <div className="space-y-8">
@@ -131,7 +150,7 @@ const DashboardOverview = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {statCards.map((stat, index) => {
           const IconComponent = stat.icon;
           return (
@@ -167,6 +186,7 @@ const DashboardOverview = () => {
               return (
                 <button
                   key={index}
+                  onClick={() => setActiveSection(action.action)}
                   className={`p-4 bg-gradient-to-r ${action.color} rounded-xl text-white hover:shadow-lg transition-all duration-300 transform hover:scale-105 text-left`}
                 >
                   <IconComponent className="mb-3" size={24} />
@@ -185,20 +205,22 @@ const DashboardOverview = () => {
             Recent Activity
           </h2>
           <div className="space-y-4">
-            {recentActivity.map((activity, index) => {
-              const IconComponent = activity.icon;
+            {recentActivity.length > 0 ? recentActivity.map((activity, index) => {
+              const IconComponent = getActivityIcon(activity.action);
               return (
                 <div key={index} className="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
                   <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
                     <IconComponent className="text-gray-600" size={16} />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-800">{activity.action}</p>
-                    <p className="text-xs text-gray-500">{activity.time}</p>
+                    <p className="text-sm font-medium text-gray-800">{activity.action}{activity.details?.name ? `: "${activity.details.name}"` : ''}</p>
+                    <p className="text-xs text-gray-500">{formatDistanceToNow(new Date(activity.created_at), { addSuffix: true })}</p>
                   </div>
                 </div>
               );
-            })}
+            }) : (
+              <p className="text-gray-500 text-center py-4">No recent activity to show.</p>
+            )}
           </div>
         </div>
       </div>

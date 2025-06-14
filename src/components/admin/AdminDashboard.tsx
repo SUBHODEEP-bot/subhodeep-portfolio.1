@@ -24,7 +24,7 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
   const renderSection = () => {
     switch (activeSection) {
       case 'dashboard':
-        return <DashboardOverview />;
+        return <DashboardOverview setActiveSection={setActiveSection} />;
       case 'hero':
         return <HeroEditor />;
       case 'about':
@@ -46,7 +46,7 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
       case 'social_links': // Add new case
         return <SocialLinksEditor />;
       default:
-        return <DashboardOverview />;
+        return <DashboardOverview setActiveSection={setActiveSection} />;
     }
   };
 

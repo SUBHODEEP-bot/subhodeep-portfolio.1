@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Plus, Trash2, Save, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import * as Icons from 'lucide-react';
+import { logActivity } from '@/integrations/supabase/activityLogger';
 
 interface Skill {
   id?: string;
@@ -66,7 +67,8 @@ const SkillsManager = () => {
         .single();
 
       if (error) throw error;
-
+      
+      await logActivity('Added new skill', { name: newSkill.name });
       setSkills([...skills, data].sort((a,b) => a.category.localeCompare(b.category) || a.name.localeCompare(b.name)));
       setNewSkill({ name: '', category: 'programming', proficiency: 50, icon_name: 'Code' });
       toast({ title: "Success", description: "Skill added successfully!" });
@@ -78,9 +80,13 @@ const SkillsManager = () => {
 
   const deleteSkill = async (id: string) => {
     try {
+      const skillToDelete = skills.find(s => s.id === id);
       const { error } = await supabase.from('skills').delete().eq('id', id);
       if (error) throw error;
       setSkills(skills.filter(skill => skill.id !== id));
+      if (skillToDelete) {
+        await logActivity('Deleted skill', { name: skillToDelete.name });
+      }
       toast({ title: "Success", description: "Skill deleted successfully!" });
     } catch (error) {
       console.error('Error deleting skill:', error);
@@ -97,6 +103,7 @@ const SkillsManager = () => {
         .eq('id', id);
 
       if (error) throw error;
+      await logActivity('Updated skill', { name: skill.name });
       toast({ title: "Success", description: "Skill updated successfully!" });
     } catch (error) {
       console.error('Error updating skill:', error);

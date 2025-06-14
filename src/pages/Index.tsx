@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import Hero from '../components/Hero';
 import About from '../components/About';
@@ -21,7 +20,17 @@ const Index = () => {
   });
 
   useEffect(() => {
-    // Fetch section visibility settings
+    const logPageView = async () => {
+      try {
+        await supabase.from('page_views').insert({ page: window.location.pathname });
+      } catch (error) {
+        console.error('Error logging page view:', error);
+      }
+    };
+    logPageView();
+  }, []);
+
+  useEffect(() => {
     const fetchSettings = async () => {
       try {
         const { data, error } = await supabase
