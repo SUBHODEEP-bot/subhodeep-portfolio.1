@@ -13,7 +13,8 @@ import {
   Home,
   Code,
   LogOut,
-  Crown
+  Crown,
+  Award // New icon import
 } from 'lucide-react';
 
 interface AdminNavProps {
@@ -32,6 +33,7 @@ const AdminNav = ({ activeSection, setActiveSection, onLogout }: AdminNavProps) 
     { id: 'skills', label: 'Skills', icon: Code, color: 'from-orange-500 to-orange-600' },
     { id: 'projects', label: 'Projects', icon: Briefcase, color: 'from-cyan-500 to-cyan-600' },
     { id: 'education', label: 'Education', icon: GraduationCap, color: 'from-indigo-500 to-indigo-600' },
+    { id: 'awards', label: 'Awards', icon: Award, color: 'from-yellow-500 to-yellow-600' },
     { id: 'gallery', label: 'Gallery', icon: Image, color: 'from-pink-500 to-pink-600' },
     { id: 'blog', label: 'Blog', icon: FileText, color: 'from-emerald-500 to-emerald-600' },
     { id: 'contact', label: 'Contact', icon: Mail, color: 'from-red-500 to-red-600' },

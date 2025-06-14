@@ -15,6 +15,7 @@ const Navigation = ({ activeSection }: NavigationProps) => {
     { href: '#skills', label: 'Skills' },
     { href: '#projects', label: 'Projects' },
     { href: '#education', label: 'Education' },
+    { href: '#awards', label: 'Awards' },
     { href: '#gallery', label: 'Gallery' },
     { href: '#blog', label: 'Blog' },
     { href: '#contact', label: 'Contact' },
