@@ -97,7 +97,7 @@ const HeroEditor = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <RefreshCw className="animate-spin text-white" size={32} />
+        <RefreshCw className="animate-spin text-cyan-400" size={32} />
       </div>
     );
   }
@@ -109,7 +109,7 @@ const HeroEditor = () => {
         <p className="text-gray-300">Edit the main banner content of your website</p>
       </div>
 
-      <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
+      <div className="bg-slate-800/50 backdrop-blur-md rounded-2xl p-8 border border-slate-700/50">
         <div className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -119,7 +119,7 @@ const HeroEditor = () => {
               type="text"
               value={heroData.name}
               onChange={(e) => setHeroData({ ...heroData, name: e.target.value })}
-              className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors"
+              className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-gray-400 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors"
               placeholder="Enter your full name"
             />
           </div>
@@ -132,7 +132,7 @@ const HeroEditor = () => {
               type="text"
               value={heroData.title}
               onChange={(e) => setHeroData({ ...heroData, title: e.target.value })}
-              className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors"
+              className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-gray-400 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors"
               placeholder="e.g., Engineering Student | Innovator | Future Technologist"
             />
           </div>
@@ -145,7 +145,7 @@ const HeroEditor = () => {
               value={heroData.description}
               onChange={(e) => setHeroData({ ...heroData, description: e.target.value })}
               rows={4}
-              className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors resize-none"
+              className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-gray-400 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors resize-none"
               placeholder="Enter a brief description about yourself"
             />
           </div>

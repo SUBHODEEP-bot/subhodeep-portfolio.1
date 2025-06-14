@@ -28,10 +28,18 @@ const AboutEditor = () => {
       if (error) throw error;
 
       const aboutContent = data.reduce((acc, item) => {
-        // Parse the JSON string to get the actual value
-        acc[item.content_key] = typeof item.content_value === 'string' 
-          ? JSON.parse(item.content_value) 
-          : item.content_value;
+        // Handle both JSON and plain string values
+        let value = item.content_value;
+        if (typeof value === 'string') {
+          try {
+            // Try to parse as JSON first
+            value = JSON.parse(value);
+          } catch {
+            // If parsing fails, use the string as is
+            value = value;
+          }
+        }
+        acc[item.content_key] = value;
         return acc;
       }, {} as any);
 
@@ -87,7 +95,7 @@ const AboutEditor = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <RefreshCw className="animate-spin text-white" size={32} />
+        <RefreshCw className="animate-spin text-cyan-400" size={32} />
       </div>
     );
   }
@@ -99,7 +107,7 @@ const AboutEditor = () => {
         <p className="text-gray-300">Edit your personal information and bio</p>
       </div>
 
-      <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
+      <div className="bg-slate-800/50 backdrop-blur-md rounded-2xl p-8 border border-slate-700/50">
         <div className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -109,7 +117,7 @@ const AboutEditor = () => {
               value={aboutData.bio}
               onChange={(e) => setAboutData({ ...aboutData, bio: e.target.value })}
               rows={6}
-              className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors resize-none"
+              className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-gray-400 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors resize-none"
               placeholder="Write your personal biography here..."
             />
           </div>
@@ -122,7 +130,7 @@ const AboutEditor = () => {
               value={aboutData.quote}
               onChange={(e) => setAboutData({ ...aboutData, quote: e.target.value })}
               rows={3}
-              className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors resize-none"
+              className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-gray-400 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors resize-none"
               placeholder="Enter your favorite quote or personal motto..."
             />
           </div>

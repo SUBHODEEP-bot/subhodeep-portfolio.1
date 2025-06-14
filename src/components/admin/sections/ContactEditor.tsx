@@ -29,10 +29,18 @@ const ContactEditor = () => {
       if (error) throw error;
 
       const contactContent = data.reduce((acc, item) => {
-        // Parse the JSON string to get the actual value
-        acc[item.content_key] = typeof item.content_value === 'string' 
-          ? JSON.parse(item.content_value) 
-          : item.content_value;
+        // Handle both JSON and plain string values
+        let value = item.content_value;
+        if (typeof value === 'string') {
+          try {
+            // Try to parse as JSON first
+            value = JSON.parse(value);
+          } catch {
+            // If parsing fails, use the string as is
+            value = value;
+          }
+        }
+        acc[item.content_key] = value;
         return acc;
       }, {} as any);
 
@@ -89,7 +97,7 @@ const ContactEditor = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <RefreshCw className="animate-spin text-white" size={32} />
+        <RefreshCw className="animate-spin text-cyan-400" size={32} />
       </div>
     );
   }
@@ -101,7 +109,7 @@ const ContactEditor = () => {
         <p className="text-gray-300">Edit your contact information</p>
       </div>
 
-      <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
+      <div className="bg-slate-800/50 backdrop-blur-md rounded-2xl p-8 border border-slate-700/50">
         <div className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -111,7 +119,7 @@ const ContactEditor = () => {
               type="email"
               value={contactData.email}
               onChange={(e) => setContactData({ ...contactData, email: e.target.value })}
-              className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors"
+              className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-gray-400 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors"
               placeholder="your.email@example.com"
             />
           </div>
@@ -124,7 +132,7 @@ const ContactEditor = () => {
               type="tel"
               value={contactData.phone}
               onChange={(e) => setContactData({ ...contactData, phone: e.target.value })}
-              className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors"
+              className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-gray-400 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors"
               placeholder="+91 XXXXXXXXXX"
             />
           </div>
@@ -137,7 +145,7 @@ const ContactEditor = () => {
               type="text"
               value={contactData.location}
               onChange={(e) => setContactData({ ...contactData, location: e.target.value })}
-              className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors"
+              className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-gray-400 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors"
               placeholder="City, State, Country"
             />
           </div>
