@@ -1,0 +1,3 @@
+
+ALTER TABLE public.gallery
+ADD COLUMN "order" INTEGER NOT NULL DEFAULT 0;

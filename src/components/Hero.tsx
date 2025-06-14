@@ -1,6 +1,5 @@
-
 import React, { useEffect, useState } from 'react';
-import { ArrowDown, Github, Linkedin, Youtube, Twitter, LucideIcon } from 'lucide-react';
+import { ArrowDown, Github, Linkedin, Youtube, Twitter, LucideIcon, icons } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface HeroData {
@@ -12,19 +11,18 @@ interface HeroData {
 interface SocialLinkData {
   platform: string;
   url: string;
-  icon: string; // Name of the Lucide icon
+  icon: string; // Name of the Lucide icon (ensure it's a keyof typeof icons)
 }
 
-// Simple icon mapping for common social media icons
+// Updated getIconComponent to use the generic Icon component approach for more flexibility
 const getIconComponent = (iconName: string): LucideIcon => {
-  const iconMap: Record<string, LucideIcon> = {
-    Github,
-    Linkedin,
-    Youtube,
-    Twitter,
-  };
-  
-  return iconMap[iconName] || Github; // Default fallback to Github icon
+  const normalizedIconName = iconName.charAt(0).toUpperCase() + iconName.slice(1);
+  // Check if the iconName is a valid key in the imported `icons` object
+  if (normalizedIconName in icons) {
+    return icons[normalizedIconName as keyof typeof icons];
+  }
+  console.warn(`Icon "${normalizedIconName}" not found. Defaulting to Github.`);
+  return Github; // Default fallback to Github icon
 };
 
 const Hero = () => {
@@ -53,17 +51,15 @@ const Hero = () => {
           if (typeof value === 'string') {
             try { value = JSON.parse(value); } catch { /* keep as string */ }
           }
-          acc[item.content_key] = value;
+          acc[item.content_key as keyof HeroData] = value;
           return acc;
-        }, {} as any);
+        }, {} as Partial<HeroData>);
 
-        if (heroContent.name || heroContent.title || heroContent.description) {
-          setHeroData({
-            name: heroContent.name || heroData.name,
-            title: heroContent.title || heroData.title,
-            description: heroContent.description || heroData.description
-          });
-        }
+        setHeroData(prevData => ({
+          name: heroContent.name || prevData.name,
+          title: heroContent.title || prevData.title,
+          description: heroContent.description || prevData.description
+        }));
       } catch (error) {
         console.error('Error fetching hero data:', error);
       }
@@ -76,28 +72,38 @@ const Hero = () => {
           .select('content_value')
           .eq('section', 'social_links')
           .eq('content_key', 'links')
-          .single();
+          .maybeSingle(); // Use maybeSingle to handle no rows gracefully
         
-        if (error && error.code !== 'PGRST116') throw error;
+        if (error) throw error;
 
         if (data && data.content_value) {
-          let parsedLinks = data.content_value;
-          if (typeof parsedLinks === 'string') {
-            try { parsedLinks = JSON.parse(parsedLinks); } catch (e) { parsedLinks = []; }
+          let parsedLinksValue = data.content_value;
+          if (typeof parsedLinksValue === 'string') {
+            try { parsedLinksValue = JSON.parse(parsedLinksValue); } catch (e) { parsedLinksValue = []; console.error("Failed to parse social links JSON:", e); }
           }
           
-          // Type assertion with proper validation
-          if (Array.isArray(parsedLinks)) {
-            const validLinks = parsedLinks.filter((link: any) => 
-              link && typeof link === 'object' && 
-              typeof link.platform === 'string' && 
-              typeof link.url === 'string' && 
-              typeof link.icon === 'string'
-            ) as SocialLinkData[];
+          if (Array.isArray(parsedLinksValue)) {
+            const validLinks = parsedLinksValue.filter(
+              // This is the updated type guard
+              (link: any): link is SocialLinkData =>
+                link != null &&
+                typeof link === 'object' &&
+                typeof link.platform === 'string' &&
+                typeof link.url === 'string' &&
+                typeof link.icon === 'string'
+            );
             setSocialLinks(validLinks);
+          } else {
+             console.warn('Social links from DB is not an array or is malformed. Using defaults.');
+             setSocialLinks([
+              { platform: "LinkedIn", url: "https://linkedin.com", icon: "Linkedin" },
+              { platform: "GitHub", url: "https://github.com", icon: "Github" },
+              { platform: "YouTube", url: "https://youtube.com", icon: "Youtube" },
+              { platform: "Twitter", url: "https://twitter.com", icon: "Twitter" },
+            ]);
           }
         } else {
-           // Fallback to default hardcoded links if none in DB
+           // Fallback to default hardcoded links if none in DB or data is null
           setSocialLinks([
             { platform: "LinkedIn", url: "https://linkedin.com", icon: "Linkedin" },
             { platform: "GitHub", url: "https://github.com", icon: "Github" },
@@ -119,7 +125,7 @@ const Hero = () => {
 
     fetchHeroData();
     fetchSocialLinks();
-  }, []);
+  }, [heroData.name, heroData.title, heroData.description]); // Dependencies updated for heroData defaults
 
   const roles = heroData.title.split(' | ').filter(role => role.trim());
 
