@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Mail, MapPin, Phone, Send, Download, Linkedin, Github, Youtube, Twitter, Instagram, Facebook } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -87,7 +88,7 @@ const Contact = () => {
           if (typeof parsedLinks === 'string') {
             try { parsedLinks = JSON.parse(parsedLinks); } catch (e) { parsedLinks = []; }
           }
-          setSocialLinks(Array.isArray(parsedLinks) ? (parsedLinks as SocialLink[]) : []);
+          setSocialLinks(Array.isArray(parsedLinks) ? (parsedLinks as unknown as SocialLink[]) : []);
         }
 
       } catch (error) {
