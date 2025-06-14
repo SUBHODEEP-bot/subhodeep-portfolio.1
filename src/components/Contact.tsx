@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { Mail, MapPin, Phone, Send, Download, Linkedin, Github, Youtube, Twitter, Instagram, Facebook, Gitlab } from 'lucide-react';
+import { Mail, MapPin, Phone, Send, Download, Linkedin, Github, Youtube, Twitter, Instagram, Facebook, Gitlab, Dribbble, Behance, Codepen } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -18,6 +17,9 @@ const iconComponents: { [key: string]: React.ElementType } = {
   Instagram,
   Facebook,
   Gitlab,
+  Dribbble,
+  Behance,
+  Codepen
 };
 
 const Contact = () => {
@@ -30,6 +32,11 @@ const Contact = () => {
     phone: '+91 9876543210',
     location: 'Kolkata, West Bengal, India',
     resume_url: '',
+    socials: {
+      linkedin: '#',
+      github: '#',
+      youtube: '#',
+    }
   });
 
   const [formData, setFormData] = useState({
@@ -69,7 +76,6 @@ const Contact = () => {
           
           if (Object.keys(contactContent).length > 0) {
             setContactData(prev => ({
-              ...prev,
               email: contactContent.email || prev.email,
               phone: contactContent.phone || prev.phone,
               location: contactContent.location || prev.location,
@@ -84,7 +90,7 @@ const Contact = () => {
           if (typeof parsedLinks === 'string') {
             try { parsedLinks = JSON.parse(parsedLinks); } catch (e) { parsedLinks = []; }
           }
-          setSocialLinks(Array.isArray(parsedLinks) ? parsedLinks as unknown as SocialLink[] : []);
+          setSocialLinks(Array.isArray(parsedLinks) ? parsedLinks : []);
         }
 
       } catch (error) {

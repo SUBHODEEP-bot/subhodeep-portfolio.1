@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Save, RefreshCw, PlusCircle, Trash2, Link as LinkIcon, Info } from 'lucide-react';
@@ -19,7 +20,7 @@ const SocialLinksEditor = () => {
   const [saving, setSaving] = useState(false);
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
 
-  const knownIcons = ['Github', 'Linkedin', 'Youtube', 'Twitter', 'Instagram', 'Facebook', 'Gitlab'];
+  const knownIcons = ['Github', 'Linkedin', 'Youtube', 'Twitter', 'Instagram', 'Facebook', 'Gitlab', 'Dribbble', 'Behance', 'Codepen']; // Add more as needed
 
   useEffect(() => {
     fetchSocialLinks();
