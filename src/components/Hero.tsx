@@ -1,6 +1,6 @@
+
 import React, { useEffect, useState } from 'react';
-import { ArrowDown, Github, Linkedin, Youtube, Twitter, LucideIcon, Icon as LucideDynamicIcon } from 'lucide-react';
-import * as icons from 'lucide-react'; // Import all icons for dynamic access
+import { ArrowDown, Github, Linkedin, Youtube, Twitter, LucideIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface HeroData {
@@ -15,13 +15,16 @@ interface SocialLinkData {
   icon: string; // Name of the Lucide icon
 }
 
-const DynamicIcon = ({ name, ...props }: { name: string } & React.ComponentProps<LucideIcon>) => {
-  const IconComponent = (icons as Record<string, LucideIcon>)[name];
-  if (!IconComponent) {
-    // Fallback icon or null if preferred
-    return <LucideDynamicIcon className="text-gray-400" {...props} />; 
-  }
-  return <IconComponent {...props} />;
+// Simple icon mapping for common social media icons
+const getIconComponent = (iconName: string): LucideIcon => {
+  const iconMap: Record<string, LucideIcon> = {
+    Github,
+    Linkedin,
+    Youtube,
+    Twitter,
+  };
+  
+  return iconMap[iconName] || Github; // Default fallback to Github icon
 };
 
 const Hero = () => {
@@ -82,7 +85,17 @@ const Hero = () => {
           if (typeof parsedLinks === 'string') {
             try { parsedLinks = JSON.parse(parsedLinks); } catch (e) { parsedLinks = []; }
           }
-          setSocialLinks(Array.isArray(parsedLinks) ? parsedLinks : []);
+          
+          // Type assertion with proper validation
+          if (Array.isArray(parsedLinks)) {
+            const validLinks = parsedLinks.filter((link: any) => 
+              link && typeof link === 'object' && 
+              typeof link.platform === 'string' && 
+              typeof link.url === 'string' && 
+              typeof link.icon === 'string'
+            ) as SocialLinkData[];
+            setSocialLinks(validLinks);
+          }
         } else {
            // Fallback to default hardcoded links if none in DB
           setSocialLinks([
@@ -172,18 +185,21 @@ const Hero = () => {
         {/* Social Links */}
         {socialLinks.length > 0 && (
           <div className="flex justify-center space-x-6 mb-12">
-            {socialLinks.map((link) => (
-              <a 
-                key={link.platform} 
-                href={link.url} 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                aria-label={link.platform}
-                className="text-gray-300 hover:text-cyan-400 transition-colors"
-              >
-                <DynamicIcon name={link.icon} size={28} />
-              </a>
-            ))}
+            {socialLinks.map((link) => {
+              const IconComponent = getIconComponent(link.icon);
+              return (
+                <a 
+                  key={link.platform} 
+                  href={link.url} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  aria-label={link.platform}
+                  className="text-gray-300 hover:text-cyan-400 transition-colors"
+                >
+                  <IconComponent size={28} />
+                </a>
+              );
+            })}
           </div>
         )}
 

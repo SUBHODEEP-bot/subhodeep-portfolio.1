@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Save, RefreshCw, UploadCloud, Image as ImageIcon, Video as VideoIcon, Trash2, GripVertical, PlusCircle, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
@@ -50,7 +51,7 @@ const GalleryEditor = () => {
       const typedData = (data || []).map(item => ({
         ...item,
         media_type: item.media_type as 'image' | 'video',
-        order: item.order ?? 0 // Ensure order is a number
+        order: item.order ?? 0 // Ensure order is a number, default to 0 if missing
       }));
       
       setGalleryItems(typedData);
@@ -69,7 +70,6 @@ const GalleryEditor = () => {
   useEffect(() => {
     fetchGalleryItems();
   }, []);
-
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -129,7 +129,6 @@ const GalleryEditor = () => {
     });
   };
 
-
   const handleFileUpload = async (file: File) => {
     const fileId = crypto.randomUUID();
     const fileExtension = file.name.split('.').pop();
@@ -179,7 +178,11 @@ const GalleryEditor = () => {
           }
         } catch (thumbError: any) {
           console.error("Thumbnail generation/upload error:", thumbError);
-          toast({ title: "Thumbnail Error", description: `Could not generate/upload thumbnail for ${file.name}: ${thumbError.message}`, variant: "warning" });
+          toast({ 
+            title: "Thumbnail Error", 
+            description: `Could not generate/upload thumbnail for ${file.name}: ${thumbError.message}`, 
+            variant: "destructive" 
+          });
           // Use a placeholder or the media_url itself if thumbnail fails
           thumbnail_url = media_url; 
         }
@@ -204,7 +207,11 @@ const GalleryEditor = () => {
       if (insertError) throw insertError;
 
       if (insertedItem) {
-        setGalleryItems(prev => [...prev, { ...insertedItem, media_type: insertedItem.media_type as 'image' | 'video', order: insertedItem.order ?? prev.length }]);
+        setGalleryItems(prev => [...prev, { 
+          ...insertedItem, 
+          media_type: insertedItem.media_type as 'image' | 'video', 
+          order: insertedItem.order ?? prev.length 
+        }]);
         setUploadProgress(prev => ({ ...prev, [file.name]: { progress: 100, status: 'success', galleryItemId: insertedItem.id } }));
         toast({ title: "Upload Successful", description: `${file.name} uploaded and added to gallery.` });
       }
@@ -251,7 +258,11 @@ const GalleryEditor = () => {
             await supabase.storage.from('gallery').remove([fileNameWithPotentialPrefix]);
         } catch (storageError) {
             console.error("Error deleting from storage, proceeding with DB deletion:", storageError);
-            toast({ title: "Storage Deletion Warning", description: `Could not delete file from storage, but will remove from gallery list. ${storageError}`, variant: "warning" });
+            toast({ 
+              title: "Storage Deletion Warning", 
+              description: `Could not delete file from storage, but will remove from gallery list. ${storageError}`, 
+              variant: "destructive" 
+            });
         }
     }
 
@@ -266,7 +277,6 @@ const GalleryEditor = () => {
         toast({ title: "Error", description: "Failed to delete gallery item.", variant: "destructive" });
     }
   };
-
 
   const saveAllChanges = async () => {
     setSaving(true);
@@ -369,7 +379,6 @@ const GalleryEditor = () => {
           </div>
         )}
       </div>
-
 
       {/* Gallery Items Editor */}
       <div className="bg-slate-800/50 backdrop-blur-md rounded-2xl p-8 border border-slate-700/50">
