@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Save, RefreshCw } from 'lucide-react';
@@ -15,11 +14,6 @@ const ContactManager = () => {
     phone: '',
     location: '',
     resume_url: '',
-    socials: {
-      linkedin: '',
-      github: '',
-      youtube: '',
-    },
   });
 
   useEffect(() => {
@@ -37,15 +31,17 @@ const ContactManager = () => {
       if (error) throw error;
 
       const contactContent = data.reduce((acc, item) => {
-        let value = item.content_value;
-        if (typeof value === 'string') {
-          try {
-            value = JSON.parse(value);
-          } catch {
-            // If parsing fails, use the string as is
+        if (item.content_key !== 'socials') { // Ignore the old socials data
+          let value = item.content_value;
+          if (typeof value === 'string') {
+            try {
+              value = JSON.parse(value);
+            } catch {
+              // If parsing fails, use the string as is
+            }
           }
+          acc[item.content_key] = value;
         }
-        acc[item.content_key] = value;
         return acc;
       }, {} as any);
 
@@ -54,7 +50,6 @@ const ContactManager = () => {
         phone: contactContent.phone || '',
         location: contactContent.location || '',
         resume_url: contactContent.resume_url || '',
-        socials: contactContent.socials || { linkedin: '', github: '', youtube: '' },
       });
     } catch (error) {
       console.error('Error fetching contact data:', error);
@@ -101,16 +96,6 @@ const ContactManager = () => {
     }
   };
   
-  const handleSocialChange = (e: React.ChangeEvent<HTMLInputElement>, platform: 'linkedin' | 'github' | 'youtube') => {
-    setContactData(prev => ({
-      ...prev,
-      socials: {
-        ...prev.socials,
-        [platform]: e.target.value
-      }
-    }));
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -149,25 +134,13 @@ const ContactManager = () => {
                 <input type="text" value={contactData.location} onChange={(e) => setContactData({ ...contactData, location: e.target.value })} className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-gray-400 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors" placeholder="City, State, Country" />
               </div>
 
-              {/* Social and Resume Links */}
+              {/* Links */}
               <h3 className="text-xl font-semibold text-white border-b border-slate-700 pb-2 pt-4">Links</h3>
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">Resume URL</label>
                 <input type="text" value={contactData.resume_url} onChange={(e) => setContactData({ ...contactData, resume_url: e.target.value })} className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-gray-400 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors" placeholder="URL to your resume PDF" />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">LinkedIn URL</label>
-                <input type="text" value={contactData.socials.linkedin} onChange={(e) => handleSocialChange(e, 'linkedin')} className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-gray-400 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors" placeholder="https://linkedin.com/in/..." />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">GitHub URL</label>
-                <input type="text" value={contactData.socials.github} onChange={(e) => handleSocialChange(e, 'github')} className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-gray-400 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors" placeholder="https://github.com/..." />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">YouTube URL</label>
-                <input type="text" value={contactData.socials.youtube} onChange={(e) => handleSocialChange(e, 'youtube')} className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-gray-400 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors" placeholder="https://youtube.com/c/..." />
-              </div>
-
+              
               <button onClick={saveContactData} disabled={saving} className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold rounded-lg hover:from-cyan-600 hover:to-blue-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
                 <Save size={20} />
                 <span>{saving ? 'Saving...' : 'Save Changes'}</span>
