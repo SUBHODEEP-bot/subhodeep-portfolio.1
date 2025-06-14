@@ -1,17 +1,39 @@
-
 import React, { useEffect, useState } from 'react';
-import { ArrowDown, Github, Linkedin, Youtube, Twitter } from 'lucide-react';
+import { ArrowDown, Github, Linkedin, Youtube, Twitter, LucideIcon, Icon as LucideDynamicIcon } from 'lucide-react';
+import * as icons from 'lucide-react'; // Import all icons for dynamic access
 import { supabase } from '@/integrations/supabase/client';
+
+interface HeroData {
+  name: string;
+  title: string;
+  description: string;
+}
+
+interface SocialLinkData {
+  platform: string;
+  url: string;
+  icon: string; // Name of the Lucide icon
+}
+
+const DynamicIcon = ({ name, ...props }: { name: string } & React.ComponentProps<LucideIcon>) => {
+  const IconComponent = (icons as Record<string, LucideIcon>)[name];
+  if (!IconComponent) {
+    // Fallback icon or null if preferred
+    return <LucideDynamicIcon className="text-gray-400" {...props} />; 
+  }
+  return <IconComponent {...props} />;
+};
 
 const Hero = () => {
   const [displayText, setDisplayText] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentRole, setCurrentRole] = useState(0);
-  const [heroData, setHeroData] = useState({
-    name: 'SUBHODEEP PAL',
-    title: 'Engineering Student | Innovator | Future Technologist | Full Stack Developer',
-    description: 'Passionate about creating innovative solutions that bridge technology and human needs. Building the future, one line of code at a time.'
+  const [heroData, setHeroData] = useState<HeroData>({
+    name: 'SUBHODEEP PAL', // Default
+    title: 'Engineering Student | Innovator | Future Technologist | Full Stack Developer', // Default
+    description: 'Passionate about creating innovative solutions that bridge technology and human needs. Building the future, one line of code at a time.' // Default
   });
+  const [socialLinks, setSocialLinks] = useState<SocialLinkData[]>([]);
 
   useEffect(() => {
     const fetchHeroData = async () => {
@@ -24,16 +46,9 @@ const Hero = () => {
         if (error) throw error;
 
         const heroContent = data.reduce((acc, item) => {
-          // Handle both JSON and plain string values
           let value = item.content_value;
           if (typeof value === 'string') {
-            try {
-              // Try to parse as JSON first
-              value = JSON.parse(value);
-            } catch {
-              // If parsing fails, use the string as is
-              value = value;
-            }
+            try { value = JSON.parse(value); } catch { /* keep as string */ }
           }
           acc[item.content_key] = value;
           return acc;
@@ -51,13 +66,53 @@ const Hero = () => {
       }
     };
 
+    const fetchSocialLinks = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('website_content')
+          .select('content_value')
+          .eq('section', 'social_links')
+          .eq('content_key', 'links')
+          .single();
+        
+        if (error && error.code !== 'PGRST116') throw error;
+
+        if (data && data.content_value) {
+          let parsedLinks = data.content_value;
+          if (typeof parsedLinks === 'string') {
+            try { parsedLinks = JSON.parse(parsedLinks); } catch (e) { parsedLinks = []; }
+          }
+          setSocialLinks(Array.isArray(parsedLinks) ? parsedLinks : []);
+        } else {
+           // Fallback to default hardcoded links if none in DB
+          setSocialLinks([
+            { platform: "LinkedIn", url: "https://linkedin.com", icon: "Linkedin" },
+            { platform: "GitHub", url: "https://github.com", icon: "Github" },
+            { platform: "YouTube", url: "https://youtube.com", icon: "Youtube" },
+            { platform: "Twitter", url: "https://twitter.com", icon: "Twitter" },
+          ]);
+        }
+      } catch (error) {
+        console.error('Error fetching social links:', error);
+         // Fallback to default hardcoded links on error
+        setSocialLinks([
+          { platform: "LinkedIn", url: "https://linkedin.com", icon: "Linkedin" },
+          { platform: "GitHub", url: "https://github.com", icon: "Github" },
+          { platform: "YouTube", url: "https://youtube.com", icon: "Youtube" },
+          { platform: "Twitter", url: "https://twitter.com", icon: "Twitter" },
+        ]);
+      }
+    };
+
     fetchHeroData();
+    fetchSocialLinks();
   }, []);
 
   const roles = heroData.title.split(' | ').filter(role => role.trim());
 
   useEffect(() => {
-    const currentRoleText = roles[currentRole] || 'Engineering Student';
+    if (roles.length === 0) return; // Guard against empty roles array
+    const currentRoleText = roles[currentRole % roles.length] || ' '; // Ensure currentRole is always valid index
     
     if (currentIndex < currentRoleText.length) {
       const timeout = setTimeout(() => {
@@ -69,7 +124,7 @@ const Hero = () => {
       const timeout = setTimeout(() => {
         setCurrentIndex(0);
         setDisplayText('');
-        setCurrentRole((currentRole + 1) % roles.length);
+        setCurrentRole((prevRole) => (prevRole + 1) % roles.length);
       }, 2000);
       return () => clearTimeout(timeout);
     }
@@ -90,7 +145,7 @@ const Hero = () => {
           <div className="relative mx-auto w-48 h-48 mb-6">
             <div className="absolute inset-0 rounded-full bg-gradient-to-r from-cyan-400 to-purple-500 p-1">
               <div className="w-full h-full rounded-full bg-gray-300 flex items-center justify-center text-6xl font-bold text-gray-600">
-                SP
+                {heroData.name.split(" ").map(n => n[0]).join("").toUpperCase() || "SP"}
               </div>
             </div>
             <div className="absolute inset-0 rounded-full bg-gradient-to-r from-cyan-400 to-purple-500 opacity-20 animate-pulse"></div>
@@ -115,20 +170,22 @@ const Hero = () => {
         </p>
 
         {/* Social Links */}
-        <div className="flex justify-center space-x-6 mb-12">
-          <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-cyan-400 transition-colors">
-            <Linkedin size={28} />
-          </a>
-          <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-cyan-400 transition-colors">
-            <Github size={28} />
-          </a>
-          <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-cyan-400 transition-colors">
-            <Youtube size={28} />
-          </a>
-          <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-cyan-400 transition-colors">
-            <Twitter size={28} />
-          </a>
-        </div>
+        {socialLinks.length > 0 && (
+          <div className="flex justify-center space-x-6 mb-12">
+            {socialLinks.map((link) => (
+              <a 
+                key={link.platform} 
+                href={link.url} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                aria-label={link.platform}
+                className="text-gray-300 hover:text-cyan-400 transition-colors"
+              >
+                <DynamicIcon name={link.icon} size={28} />
+              </a>
+            ))}
+          </div>
+        )}
 
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row justify-center gap-4 mb-16">

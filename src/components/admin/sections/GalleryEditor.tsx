@@ -1,8 +1,11 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Save, Plus, Trash2, Upload, RefreshCw, Image as ImageIcon, Video, X } from 'lucide-react';
+import { Save, RefreshCw, UploadCloud, Image as ImageIcon, Video as VideoIcon, Trash2, GripVertical, PlusCircle, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Progress } from '@/components/ui/progress';
 
 interface GalleryItem {
   id: string;
@@ -12,49 +15,50 @@ interface GalleryItem {
   media_type: 'image' | 'video';
   thumbnail_url: string;
   featured: boolean;
+  order: number;
+  file_name?: string; // Store original file name for reference
 }
 
 interface UploadProgress {
-  file: File;
-  progress: number;
-  uploading: boolean;
-  error?: string;
+  [key: string]: {
+    progress: number;
+    status: 'uploading' | 'success' | 'error' | 'generating_thumbnail';
+    error?: string;
+    galleryItemId?: string; // ID of the created gallery item
+  };
 }
 
 const GalleryEditor = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [gallery, setGallery] = useState<GalleryItem[]>([]);
-  const [uploads, setUploads] = useState<UploadProgress[]>([]);
-  const [dragActive, setDragActive] = useState(false);
+  const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
+  const [filesToUpload, setFilesToUpload] = useState<File[]>([]);
+  const [uploadProgress, setUploadProgress] = useState<UploadProgress>({});
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    fetchGallery();
-  }, []);
-
-  const fetchGallery = async () => {
+  const fetchGalleryItems = async () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
         .from('gallery')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('order', { ascending: true });
 
       if (error) throw error;
       
-      // Type assertion to ensure media_type is properly typed
       const typedData = (data || []).map(item => ({
         ...item,
-        media_type: item.media_type as 'image' | 'video'
+        media_type: item.media_type as 'image' | 'video',
+        order: item.order ?? 0 // Ensure order is a number
       }));
       
-      setGallery(typedData);
+      setGalleryItems(typedData);
     } catch (error) {
-      console.error('Error fetching gallery:', error);
+      console.error('Error fetching gallery items:', error);
       toast({
         title: "Error",
-        description: "Failed to load gallery data",
+        description: "Failed to load gallery content",
         variant: "destructive"
       });
     } finally {
@@ -62,236 +66,226 @@ const GalleryEditor = () => {
     }
   };
 
-  const handleDrag = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
+  useEffect(() => {
+    fetchGalleryItems();
+  }, []);
+
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files) {
+      const newFiles = Array.from(event.target.files);
+      setFilesToUpload(prevFiles => [...prevFiles, ...newFiles.filter(nf => !prevFiles.some(pf => pf.name === nf.name && pf.size === nf.size))]);
     }
   };
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-    
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFiles(Array.from(e.dataTransfer.files));
+  const handleDrop = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (event.dataTransfer.files) {
+      const newFiles = Array.from(event.dataTransfer.files);
+      setFilesToUpload(prevFiles => [...prevFiles, ...newFiles.filter(nf => !prevFiles.some(pf => pf.name === nf.name && pf.size === nf.size))]);
     }
-  };
+  }, []);
 
-  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      handleFiles(Array.from(e.target.files));
-    }
-  };
+  const handleDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+  }, []);
 
-  const handleFiles = (files: File[]) => {
-    const validFiles = files.filter(file => {
-      const isImage = file.type.startsWith('image/');
-      const isVideo = file.type.startsWith('video/');
-      const isValidSize = file.size <= 100 * 1024 * 1024; // 100MB limit
-      
-      if (!isImage && !isVideo) {
-        toast({
-          title: "Invalid file type",
-          description: `${file.name} is not a valid image or video file`,
-          variant: "destructive"
-        });
-        return false;
-      }
-      
-      if (!isValidSize) {
-        toast({
-          title: "File too large",
-          description: `${file.name} is larger than 100MB`,
-          variant: "destructive"
-        });
-        return false;
-      }
-      
-      return true;
+  const removeFileToUpload = (fileName: string) => {
+    setFilesToUpload(prev => prev.filter(f => f.name !== fileName));
+    setUploadProgress(prev => {
+      const newState = { ...prev };
+      delete newState[fileName];
+      return newState;
     });
-
-    validFiles.forEach(uploadFile);
+  };
+  
+  const generateVideoThumbnail = async (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+      video.src = URL.createObjectURL(file);
+      video.onloadedmetadata = () => {
+        video.currentTime = Math.min(1, video.duration / 2); // Capture frame at 1s or mid-point
+      };
+      video.onseeked = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL('image/jpeg'));
+        } else {
+          reject(new Error('Failed to get canvas context for thumbnail.'));
+        }
+        URL.revokeObjectURL(video.src);
+      };
+      video.onerror = (e) => {
+        reject(new Error(`Video error for thumbnail: ${e}`));
+        URL.revokeObjectURL(video.src);
+      };
+    });
   };
 
-  const uploadFile = async (file: File) => {
-    const uploadId = Date.now() + Math.random();
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${uploadId}.${fileExt}`;
+
+  const handleFileUpload = async (file: File) => {
+    const fileId = crypto.randomUUID();
+    const fileExtension = file.name.split('.').pop();
+    const filePath = `media/${fileId}.${fileExtension}`; // Use media/ prefix and UUID for uniqueness
     const mediaType = file.type.startsWith('image/') ? 'image' : 'video';
 
-    // Add to uploads tracking
-    setUploads(prev => [...prev, {
-      file,
-      progress: 0,
-      uploading: true
-    }]);
+    setUploadProgress(prev => ({ ...prev, [file.name]: { progress: 0, status: 'uploading' } }));
 
     try {
-      // Upload to Supabase Storage
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('gallery')
-        .upload(fileName, file, {
+        .upload(filePath, file, {
           cacheControl: '3600',
-          upsert: false
+          upsert: false,
+          contentType: file.type,
         });
 
-      if (uploadError) throw uploadError;
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('gallery')
-        .getPublicUrl(fileName);
-
-      // For videos, we'll use the same URL as thumbnail for now
-      // In a real app, you might want to generate actual thumbnails
-      const thumbnailUrl = mediaType === 'video' ? publicUrl : '';
-
-      // Create gallery item
-      const newItem: GalleryItem = {
-        id: '',
-        title: file.name.split('.')[0].replace(/[-_]/g, ' '),
-        description: '',
-        media_url: publicUrl,
-        media_type: mediaType,
-        thumbnail_url: thumbnailUrl,
-        featured: false
-      };
-
-      // Add to gallery state
-      setGallery(prev => [newItem, ...prev]);
-
-      // Remove from uploads
-      setUploads(prev => prev.filter(upload => upload.file !== file));
-
-      toast({
-        title: "Upload successful",
-        description: `${file.name} has been uploaded successfully!`
-      });
-
-    } catch (error) {
-      console.error('Error uploading file:', error);
-      
-      // Update upload with error
-      setUploads(prev => prev.map(upload => 
-        upload.file === file 
-          ? { ...upload, uploading: false, error: 'Upload failed' }
-          : upload
-      ));
-      
-      toast({
-        title: "Upload failed",
-        description: `Failed to upload ${file.name}`,
-        variant: "destructive"
-      });
-    }
-  };
-
-  const removeUpload = (file: File) => {
-    setUploads(prev => prev.filter(upload => upload.file !== file));
-  };
-
-  const addGalleryItem = () => {
-    const newItem: GalleryItem = {
-      id: '',
-      title: '',
-      description: '',
-      media_url: '',
-      media_type: 'image',
-      thumbnail_url: '',
-      featured: false
-    };
-    setGallery([...gallery, newItem]);
-  };
-
-  const updateGalleryItem = (index: number, field: keyof GalleryItem, value: any) => {
-    const updated = [...gallery];
-    updated[index] = { ...updated[index], [field]: value };
-    setGallery(updated);
-  };
-
-  const deleteGalleryItem = async (index: number) => {
-    const item = gallery[index];
-    if (item.id) {
-      try {
-        const { error } = await supabase
-          .from('gallery')
-          .delete()
-          .eq('id', item.id);
-
-        if (error) throw error;
-
+      if (uploadError) {
+        console.error('Supabase upload error:', uploadError); // Log detailed error
+        setUploadProgress(prev => ({ ...prev, [file.name]: { progress: 0, error: `Upload failed: ${uploadError.message}`, status: 'error' } }));
         toast({
-          title: "Success",
-          description: "Gallery item deleted successfully!"
-        });
-      } catch (error) {
-        console.error('Error deleting gallery item:', error);
-        toast({
-          title: "Error",
-          description: "Failed to delete gallery item",
-          variant: "destructive"
+          title: "Upload Failed",
+          description: `Failed to upload ${file.name}. Error: ${uploadError.message}`, // Display detailed error
+          variant: "destructive",
         });
         return;
       }
-    }
 
-    const updated = gallery.filter((_, i) => i !== index);
-    setGallery(updated);
-  };
+      const { data: publicUrlData } = supabase.storage.from('gallery').getPublicUrl(filePath);
+      const media_url = publicUrlData.publicUrl;
 
-  const saveGallery = async () => {
-    setSaving(true);
-    try {
-      for (const item of gallery) {
-        if (!item.title || !item.media_url) continue;
-
-        if (item.id) {
-          const { error } = await supabase
-            .from('gallery')
-            .update({
-              title: item.title,
-              description: item.description,
-              media_url: item.media_url,
-              media_type: item.media_type,
-              thumbnail_url: item.thumbnail_url,
-              featured: item.featured
-            })
-            .eq('id', item.id);
-
-          if (error) throw error;
-        } else {
-          const { error } = await supabase
-            .from('gallery')
-            .insert({
-              title: item.title,
-              description: item.description,
-              media_url: item.media_url,
-              media_type: item.media_type,
-              thumbnail_url: item.thumbnail_url,
-              featured: item.featured
-            });
-
-          if (error) throw error;
+      let thumbnail_url = media_url;
+      if (mediaType === 'video') {
+        setUploadProgress(prev => ({ ...prev, [file.name]: { ...prev[file.name], status: 'generating_thumbnail' } }));
+        try {
+          thumbnail_url = await generateVideoThumbnail(file);
+           // If thumbnail is a data URL, upload it and get a public URL
+          if (thumbnail_url.startsWith('data:image')) {
+            const thumbFileName = `thumb_${fileId}.jpg`;
+            const thumbFilePath = `media/thumbnails/${thumbFileName}`;
+            const thumbBlob = await (await fetch(thumbnail_url)).blob();
+            const {data: thumbUploadData, error: thumbUploadError} = await supabase.storage
+              .from('gallery')
+              .upload(thumbFilePath, thumbBlob, {contentType: 'image/jpeg'});
+            if (thumbUploadError) throw new Error(`Thumbnail upload failed: ${thumbUploadError.message}`);
+            thumbnail_url = supabase.storage.from('gallery').getPublicUrl(thumbFilePath).data.publicUrl;
+          }
+        } catch (thumbError: any) {
+          console.error("Thumbnail generation/upload error:", thumbError);
+          toast({ title: "Thumbnail Error", description: `Could not generate/upload thumbnail for ${file.name}: ${thumbError.message}`, variant: "warning" });
+          // Use a placeholder or the media_url itself if thumbnail fails
+          thumbnail_url = media_url; 
         }
       }
+      
+      const newGalleryItem: Omit<GalleryItem, 'id' | 'order'> = {
+        title: file.name.substring(0, file.name.lastIndexOf('.')) || file.name,
+        description: '',
+        media_url,
+        media_type: mediaType,
+        thumbnail_url,
+        featured: false,
+        file_name: file.name,
+      };
 
-      await fetchGallery();
+      const { data: insertedItem, error: insertError } = await supabase
+        .from('gallery')
+        .insert({ ...newGalleryItem, order: galleryItems.length }) // Add to end by default
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+
+      if (insertedItem) {
+        setGalleryItems(prev => [...prev, { ...insertedItem, media_type: insertedItem.media_type as 'image' | 'video', order: insertedItem.order ?? prev.length }]);
+        setUploadProgress(prev => ({ ...prev, [file.name]: { progress: 100, status: 'success', galleryItemId: insertedItem.id } }));
+        toast({ title: "Upload Successful", description: `${file.name} uploaded and added to gallery.` });
+      }
+
+    } catch (error: any) {
+      console.error('Error in upload process:', error);
+      setUploadProgress(prev => ({ ...prev, [file.name]: { progress: 0, error: `Processing failed: ${error.message}`, status: 'error' } }));
       toast({
-        title: "Success",
-        description: "Gallery updated successfully!"
+        title: "Processing Error",
+        description: `Failed to process ${file.name}: ${error.message}`,
+        variant: "destructive",
       });
+    }
+  };
+
+  const handleBulkUpload = () => {
+    filesToUpload.forEach(file => {
+      if (!uploadProgress[file.name] || uploadProgress[file.name]?.status === 'error') {
+        handleFileUpload(file);
+      }
+    });
+  };
+  
+  const updateGalleryItem = (id: string, field: keyof GalleryItem, value: any) => {
+    setGalleryItems(prevItems =>
+      prevItems.map(item => (item.id === id ? { ...item, [field]: value } : item))
+    );
+  };
+
+  const deleteGalleryItem = async (id: string) => {
+    // First, try to delete from Supabase storage if media_url is a Supabase storage URL
+    const itemToDelete = galleryItems.find(item => item.id === id);
+    if (itemToDelete) {
+        try {
+            const urlParts = itemToDelete.media_url.split('/');
+            const fileNameWithPotentialPrefix = urlParts.slice(urlParts.indexOf('gallery') + 2).join('/'); // Path after bucket name
+            
+            // Also attempt to delete thumbnail if it's different and a storage URL
+            if (itemToDelete.thumbnail_url !== itemToDelete.media_url && itemToDelete.thumbnail_url.includes(supabase.storage.from('gallery').getPublicUrl('').data.publicUrl.split('/o/')[0])) {
+                 const thumbUrlParts = itemToDelete.thumbnail_url.split('/');
+                 const thumbFileNameWithPrefix = thumbUrlParts.slice(thumbUrlParts.indexOf('gallery') + 2).join('/');
+                 await supabase.storage.from('gallery').remove([thumbFileNameWithPrefix]);
+            }
+            await supabase.storage.from('gallery').remove([fileNameWithPotentialPrefix]);
+        } catch (storageError) {
+            console.error("Error deleting from storage, proceeding with DB deletion:", storageError);
+            toast({ title: "Storage Deletion Warning", description: `Could not delete file from storage, but will remove from gallery list. ${storageError}`, variant: "warning" });
+        }
+    }
+
+    // Then delete from the database table
+    try {
+        const { error } = await supabase.from('gallery').delete().eq('id', id);
+        if (error) throw error;
+        setGalleryItems(prevItems => prevItems.filter(item => item.id !== id));
+        toast({ title: "Success", description: "Gallery item deleted." });
     } catch (error) {
-      console.error('Error saving gallery:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save gallery data",
-        variant: "destructive"
+        console.error('Error deleting gallery item:', error);
+        toast({ title: "Error", description: "Failed to delete gallery item.", variant: "destructive" });
+    }
+  };
+
+
+  const saveAllChanges = async () => {
+    setSaving(true);
+    try {
+      // Update order for all items first
+      const orderedItems = galleryItems.map((item, index) => ({ ...item, order: index }));
+      setGalleryItems(orderedItems);
+
+      const updates = orderedItems.map(item => {
+        const { file_name, ...dbItem } = item; // Don't save temporary client-side file_name
+        return supabase.from('gallery').update(dbItem).eq('id', item.id);
       });
+      
+      await Promise.all(updates);
+
+      toast({ title: "Success", description: "All changes saved successfully!" });
+    } catch (error) {
+      console.error('Error saving gallery changes:', error);
+      toast({ title: "Error", description: "Failed to save changes.", variant: "destructive" });
     } finally {
       setSaving(false);
     }
@@ -300,7 +294,7 @@ const GalleryEditor = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <RefreshCw className="animate-spin text-white" size={32} />
+        <RefreshCw className="animate-spin text-cyan-400" size={32} />
       </div>
     );
   }
@@ -309,227 +303,136 @@ const GalleryEditor = () => {
     <div className="space-y-8">
       <div className="text-center">
         <h1 className="text-4xl font-bold text-white mb-4">Gallery Editor</h1>
-        <p className="text-gray-300">Manage your photos and videos</p>
+        <p className="text-gray-300">Manage your visual media content</p>
       </div>
 
-      {/* File Upload Area */}
-      <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
+      {/* Upload Section */}
+      <div className="bg-slate-800/50 backdrop-blur-md rounded-2xl p-8 border border-slate-700/50">
         <h2 className="text-2xl font-semibold text-white mb-6">Upload Media</h2>
-        
-        <div
-          className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-            dragActive 
-              ? 'border-cyan-400 bg-cyan-400/10' 
-              : 'border-white/30 hover:border-white/50'
-          }`}
-          onDragEnter={handleDrag}
-          onDragLeave={handleDrag}
-          onDragOver={handleDrag}
+        <div 
+          className="border-2 border-dashed border-slate-600 rounded-lg p-8 text-center cursor-pointer hover:border-cyan-400 transition-colors"
+          onClick={() => fileInputRef.current?.click()}
           onDrop={handleDrop}
+          onDragOver={handleDragOver}
         >
-          <Upload className="mx-auto mb-4 text-white/60" size={48} />
+          <UploadCloud className="mx-auto text-cyan-400 mb-4" size={48} />
           <p className="text-white mb-2">Drag and drop your images or videos here</p>
-          <p className="text-gray-400 text-sm mb-4">Support for JPG, PNG, GIF, MP4, MOV, AVI (max 100MB)</p>
-          
-          <label className="inline-flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold rounded-lg hover:from-cyan-600 hover:to-blue-700 transition-all duration-300 cursor-pointer">
-            <Upload size={20} />
-            <span>Browse Files</span>
-            <input
-              type="file"
-              multiple
-              accept="image/*,video/*"
-              onChange={handleFileInput}
-              className="hidden"
-            />
-          </label>
+          <p className="text-sm text-gray-400 mb-4">Support for JPG, PNG, GIF, MP4, MOV, AVI (max 100MB)</p>
+          <Button variant="outline" className="bg-slate-700 hover:bg-slate-600 border-slate-500 text-white">
+            Browse Files
+          </Button>
+          <input
+            type="file"
+            ref={fileInputRef}
+            multiple
+            onChange={handleFileChange}
+            className="hidden"
+            accept="image/*,video/*"
+          />
         </div>
 
-        {/* Upload Progress */}
-        {uploads.length > 0 && (
-          <div className="mt-6 space-y-3">
-            <h3 className="text-lg font-semibold text-white">Uploading Files</h3>
-            {uploads.map((upload, index) => (
-              <div key={index} className="bg-white/5 rounded-lg p-4 border border-white/10">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-white text-sm truncate">{upload.file.name}</span>
-                  <button
-                    onClick={() => removeUpload(upload.file)}
-                    className="text-gray-400 hover:text-white transition-colors"
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-                
-                {upload.uploading ? (
+        {filesToUpload.length > 0 && (
+          <div className="mt-6 space-y-4">
+            <h3 className="text-xl font-medium text-white">Uploading Files ({filesToUpload.length})</h3>
+            {filesToUpload.map(file => (
+              <div key={file.name} className="bg-slate-700/50 p-4 rounded-lg flex items-center justify-between">
+                <div className="flex-grow">
                   <div className="flex items-center space-x-2">
-                    <div className="flex-1 bg-white/10 rounded-full h-2">
-                      <div 
-                        className="bg-gradient-to-r from-cyan-500 to-blue-600 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${upload.progress}%` }}
-                      />
-                    </div>
-                    <RefreshCw className="animate-spin text-cyan-400" size={16} />
+                    {file.type.startsWith('image/') ? <ImageIcon className="text-cyan-400" /> : <VideoIcon className="text-purple-400" />}
+                    <span className="text-white truncate max-w-xs sm:max-w-md md:max-w-lg">{file.name}</span>
+                    <span className="text-xs text-gray-400">({(file.size / 1024 / 1024).toFixed(2)} MB)</span>
                   </div>
-                ) : upload.error ? (
-                  <p className="text-red-400 text-sm">{upload.error}</p>
-                ) : (
-                  <p className="text-green-400 text-sm">Upload complete!</p>
-                )}
+                  {uploadProgress[file.name] && (
+                    <div className="mt-2">
+                      <Progress value={uploadProgress[file.name]?.progress || 0} className="w-full h-2 [&>*]:bg-cyan-400" />
+                      {uploadProgress[file.name]?.status === 'error' && (
+                        <p className="text-red-400 text-sm mt-1 flex items-center">
+                          <XCircle size={16} className="mr-1" /> {uploadProgress[file.name]?.error}
+                        </p>
+                      )}
+                       {uploadProgress[file.name]?.status === 'uploading' && <p className="text-cyan-400 text-sm mt-1">Uploading...</p>}
+                       {uploadProgress[file.name]?.status === 'generating_thumbnail' && <p className="text-yellow-400 text-sm mt-1">Generating thumbnail...</p>}
+                       {uploadProgress[file.name]?.status === 'success' && <p className="text-green-400 text-sm mt-1 flex items-center"><CheckCircle size={16} className="mr-1" /> Uploaded successfully!</p>}
+                    </div>
+                  )}
+                </div>
+                <Button variant="ghost" size="icon" onClick={() => removeFileToUpload(file.name)} className="text-gray-400 hover:text-red-500">
+                  <XCircle size={20} />
+                </Button>
               </div>
             ))}
+            <Button onClick={handleBulkUpload} disabled={filesToUpload.every(f => uploadProgress[f.name]?.status === 'success' || uploadProgress[f.name]?.status === 'uploading')}
+              className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white"
+            >
+              <UploadCloud size={18} className="mr-2" /> Start Uploads
+            </Button>
           </div>
         )}
       </div>
 
-      <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-semibold text-white">Gallery Items</h2>
-          <button
-            onClick={addGalleryItem}
-            className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-300"
-          >
-            <Plus size={20} />
-            <span>Add Manual Entry</span>
-          </button>
-        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {gallery.map((item, index) => (
-            <div key={index} className="bg-white/5 rounded-lg p-6 border border-white/10">
-              <div className="flex items-center space-x-2 mb-4">
+      {/* Gallery Items Editor */}
+      <div className="bg-slate-800/50 backdrop-blur-md rounded-2xl p-8 border border-slate-700/50">
+        <h2 className="text-2xl font-semibold text-white mb-6">Gallery Items</h2>
+        {galleryItems.length === 0 && !loading && (
+          <p className="text-gray-400 text-center py-4">No gallery items yet. Upload some media to get started.</p>
+        )}
+        <div className="space-y-6">
+          {galleryItems.map((item, index) => (
+            <div key={item.id} className="bg-slate-700/50 p-6 rounded-lg border border-slate-600/50 flex flex-col md:flex-row gap-6 items-start">
+              <div className="flex-shrink-0 w-full md:w-48 h-32 rounded-md overflow-hidden bg-slate-600">
                 {item.media_type === 'image' ? (
-                  <ImageIcon className="text-cyan-400" size={20} />
+                  <img src={item.thumbnail_url || item.media_url} alt={item.title} className="w-full h-full object-cover" />
                 ) : (
-                  <Video className="text-purple-400" size={20} />
+                  <div className="relative w-full h-full">
+                    <img src={item.thumbnail_url} alt={`${item.title} thumbnail`} className="w-full h-full object-cover" />
+                    <VideoIcon className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white/70" size={32} />
+                  </div>
                 )}
-                <h3 className="text-lg font-semibold text-white">
-                  {item.media_type === 'image' ? 'Image' : 'Video'} #{index + 1}
-                </h3>
               </div>
-
-              {/* Preview */}
-              {item.media_url && (
-                <div className="mb-4">
-                  {item.media_type === 'image' ? (
-                    <img
-                      src={item.media_url}
-                      alt={item.title}
-                      className="w-full h-32 object-cover rounded-lg"
-                    />
-                  ) : (
-                    <video
-                      src={item.media_url}
-                      className="w-full h-32 object-cover rounded-lg"
-                      controls
-                    />
-                  )}
-                </div>
-              )}
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Title *
-                  </label>
-                  <input
-                    type="text"
-                    value={item.title}
-                    onChange={(e) => updateGalleryItem(index, 'title', e.target.value)}
-                    className="w-full px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors"
-                    placeholder="Enter title"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Media Type
-                  </label>
-                  <select
-                    value={item.media_type}
-                    onChange={(e) => updateGalleryItem(index, 'media_type', e.target.value as 'image' | 'video')}
-                    className="w-full px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors"
-                  >
-                    <option value="image">Image</option>
-                    <option value="video">Video</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Media URL *
-                  </label>
-                  <input
-                    type="url"
-                    value={item.media_url}
-                    onChange={(e) => updateGalleryItem(index, 'media_url', e.target.value)}
-                    className="w-full px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors"
-                    placeholder="https://example.com/media.jpg"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Thumbnail URL (for videos)
-                  </label>
-                  <input
-                    type="url"
-                    value={item.thumbnail_url}
-                    onChange={(e) => updateGalleryItem(index, 'thumbnail_url', e.target.value)}
-                    className="w-full px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors"
-                    placeholder="https://example.com/thumbnail.jpg"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Description
-                  </label>
-                  <textarea
-                    value={item.description}
-                    onChange={(e) => updateGalleryItem(index, 'description', e.target.value)}
-                    rows={3}
-                    className="w-full px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors resize-none"
-                    placeholder="Description of the media..."
-                  />
-                </div>
-
+              <div className="flex-grow space-y-3">
+                <Input
+                  type="text"
+                  value={item.title}
+                  onChange={(e) => updateGalleryItem(item.id, 'title', e.target.value)}
+                  placeholder="Title"
+                  className="bg-slate-900/50 border-slate-600/50 text-white focus:border-cyan-400"
+                />
+                <Textarea
+                  value={item.description}
+                  onChange={(e) => updateGalleryItem(item.id, 'description', e.target.value)}
+                  placeholder="Description (optional)"
+                  rows={2}
+                  className="bg-slate-900/50 border-slate-600/50 text-white resize-none focus:border-cyan-400"
+                />
                 <div className="flex items-center space-x-3">
-                  <input
-                    type="checkbox"
-                    id={`featured-${index}`}
-                    checked={item.featured}
-                    onChange={(e) => updateGalleryItem(index, 'featured', e.target.checked)}
-                    className="w-4 h-4 text-cyan-500 bg-white/5 border-white/20 rounded focus:ring-cyan-400 focus:ring-2"
-                  />
-                  <label htmlFor={`featured-${index}`} className="text-sm text-gray-300">
-                    Featured item
+                  <label className="text-sm text-gray-300 flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={item.featured}
+                      onChange={(e) => updateGalleryItem(item.id, 'featured', e.target.checked)}
+                      className="mr-2 h-4 w-4 rounded border-gray-300 text-cyan-500 focus:ring-cyan-500"
+                    />
+                    Featured
                   </label>
                 </div>
-
-                <div className="flex justify-between items-center pt-4 border-t border-white/10">
-                  <button
-                    onClick={() => deleteGalleryItem(index)}
-                    className="flex items-center space-x-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
-                  >
-                    <Trash2 size={16} />
-                    <span>Delete</span>
-                  </button>
-                </div>
               </div>
+              <Button variant="ghost" size="icon" onClick={() => deleteGalleryItem(item.id)} className="text-gray-400 hover:text-red-500 md:ml-auto">
+                <Trash2 size={20} />
+              </Button>
             </div>
           ))}
         </div>
-
-        <div className="mt-6">
-          <button
-            onClick={saveGallery}
+        {galleryItems.length > 0 && (
+          <Button
+            onClick={saveAllChanges}
             disabled={saving}
-            className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold rounded-lg hover:from-cyan-600 hover:to-blue-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="mt-8 flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold rounded-lg hover:from-cyan-600 hover:to-blue-700 transition-all duration-300 disabled:opacity-50"
           >
             <Save size={20} />
-            <span>{saving ? 'Saving...' : 'Save All Changes'}</span>
-          </button>
-        </div>
+            <span>{saving ? 'Saving All Changes...' : 'Save All Changes'}</span>
+          </Button>
+        )}
       </div>
     </div>
   );

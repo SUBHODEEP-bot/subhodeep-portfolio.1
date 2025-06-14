@@ -11,6 +11,7 @@ import GalleryEditor from './sections/GalleryEditor';
 import BlogEditor from './sections/BlogEditor';
 import ContactEditor from './sections/ContactEditor';
 import SettingsEditor from './sections/SettingsEditor';
+import SocialLinksEditor from './sections/SocialLinksEditor'; // Import the new editor
 
 interface AdminDashboardProps {
   onLogout?: () => void;
@@ -41,6 +42,8 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
         return <ContactEditor />;
       case 'settings':
         return <SettingsEditor />;
+      case 'social_links': // Add new case
+        return <SocialLinksEditor />;
       default:
         return <DashboardOverview />;
     }
