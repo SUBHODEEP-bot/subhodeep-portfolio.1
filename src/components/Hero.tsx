@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { ArrowDown, Github, Linkedin, Youtube, Twitter, LucideIcon, icons } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,6 +6,7 @@ interface HeroData {
   name: string;
   title: string;
   description: string;
+  avatar_url?: string;
 }
 
 interface SocialLinkData {
@@ -33,7 +33,8 @@ const Hero = () => {
   const [heroData, setHeroData] = useState<HeroData>({
     name: 'SUBHODEEP PAL', // Default
     title: 'Engineering Student | Innovator | Future Technologist | Full Stack Developer', // Default
-    description: 'Passionate about creating innovative solutions that bridge technology and human needs. Building the future, one line of code at a time.' // Default
+    description: 'Passionate about creating innovative solutions that bridge technology and human needs. Building the future, one line of code at a time.', // Default
+    avatar_url: '',
   });
   const [socialLinks, setSocialLinks] = useState<SocialLinkData[]>([]);
 
@@ -64,7 +65,8 @@ const Hero = () => {
         setHeroData(prevData => ({
           name: heroContent.name || prevData.name,
           title: heroContent.title || prevData.title,
-          description: heroContent.description || prevData.description
+          description: heroContent.description || prevData.description,
+          avatar_url: heroContent.avatar_url || '',
         }));
       } catch (error) {
         console.error('Error fetching hero data:', error);
@@ -175,9 +177,13 @@ const Hero = () => {
         <div className="mb-8">
           <div className="relative mx-auto w-48 h-48 mb-6">
             <div className="absolute inset-0 rounded-full bg-gradient-to-r from-cyan-400 to-purple-500 p-1">
-              <div className="w-full h-full rounded-full bg-gray-300 flex items-center justify-center text-6xl font-bold text-gray-600">
-                {heroData.name.split(" ").map(n => n[0]).join("").toUpperCase() || "SP"}
-              </div>
+              {heroData.avatar_url ? (
+                <img src={heroData.avatar_url} alt={heroData.name} className="w-full h-full rounded-full object-cover" />
+              ) : (
+                <div className="w-full h-full rounded-full bg-gray-300 flex items-center justify-center text-6xl font-bold text-gray-600">
+                  {heroData.name.split(" ").map(n => n[0]).join("").toUpperCase() || "SP"}
+                </div>
+              )}
             </div>
             <div className="absolute inset-0 rounded-full bg-gradient-to-r from-cyan-400 to-purple-500 opacity-20 animate-pulse"></div>
           </div>

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import AdminNav from './AdminNav';
 import DashboardOverview from './sections/DashboardOverview';
@@ -12,6 +11,7 @@ import BlogEditor from './sections/BlogEditor';
 import ContactEditor from './sections/ContactEditor';
 import SettingsEditor from './sections/SettingsEditor';
 import SocialLinksEditor from './sections/SocialLinksEditor'; // Import the new editor
+import AvatarUploader from './sections/AvatarUploader';
 
 interface AdminDashboardProps {
   onLogout?: () => void;
@@ -58,6 +58,7 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
       />
       <main className="ml-72 p-6">
         <div className="max-w-7xl mx-auto">
+          <AvatarUploader />
           {renderSection()}
         </div>
       </main>
