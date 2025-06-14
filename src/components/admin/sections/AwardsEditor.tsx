@@ -13,11 +13,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { type Database } from '@/integrations/supabase/types';
 
 type AwardItem = Database['public']['Tables']['awards']['Row'];
+type AwardInsert = Database['public']['Tables']['awards']['Insert'];
+type AwardUpdate = Database['public']['Tables']['awards']['Update'];
 
-const fetchAwards = async () => {
+
+const fetchAwards = async (): Promise<AwardItem[]> => {
   const { data, error } = await supabase.from('awards').select('*').order('order', { ascending: true });
   if (error) throw new Error(error.message);
-  return data;
+  return data || [];
 };
 
 const AwardsEditor = () => {
@@ -26,13 +29,13 @@ const AwardsEditor = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedAward, setSelectedAward] = useState<AwardItem | null>(null);
 
-  const { data: awards, isLoading, error } = useQuery({
+  const { data: awards, isLoading, error } = useQuery<AwardItem[]>({
     queryKey: ['awards'],
     queryFn: fetchAwards,
   });
 
   const upsertMutation = useMutation({
-    mutationFn: async ({ award, imageFile }: { award: Omit<AwardItem, 'id' | 'created_at' | 'updated_at'>, imageFile?: File }) => {
+    mutationFn: async ({ award, imageFile }: { award: AwardInsert | AwardUpdate, imageFile?: File }) => {
       let imageUrl = award.image_url;
       let oldImageUrlToDelete: string | null = null;
 
@@ -53,10 +56,10 @@ const AwardsEditor = () => {
       const awardData = { ...award, image_url: imageUrl };
 
       if (selectedAward) {
-        const { error } = await supabase.from('awards').update(awardData).eq('id', selectedAward.id);
+        const { error } = await supabase.from('awards').update(awardData as AwardUpdate).eq('id', selectedAward.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('awards').insert(awardData);
+        const { error } = await supabase.from('awards').insert(awardData as AwardInsert);
         if (error) throw error;
       }
 
@@ -64,7 +67,7 @@ const AwardsEditor = () => {
         try {
           const url = new URL(oldImageUrlToDelete);
           const path = url.pathname.split(`/public/awards/`)[1];
-          if (path) supabase.storage.from('awards').remove([path]);
+          if (path) await supabase.storage.from('awards').remove([path]);
         } catch (e) {
           console.warn("Could not delete old image", e);
         }
@@ -120,7 +123,7 @@ const AwardsEditor = () => {
     const formData = new FormData(e.currentTarget);
     const imageFile = formData.get('image') as File;
 
-    const awardData: Omit<AwardItem, 'id' | 'created_at' | 'updated_at'> = {
+    const awardData: AwardInsert = {
         title: formData.get('title') as string,
         description: formData.get('description') as string,
         issued_date: formData.get('issued_date') as string || null,

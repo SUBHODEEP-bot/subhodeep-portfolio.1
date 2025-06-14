@@ -4,15 +4,18 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Award, Loader2 } from 'lucide-react';
+import { type Database } from '@/integrations/supabase/types';
 
-const fetchAwards = async () => {
+type AwardItem = Database['public']['Tables']['awards']['Row'];
+
+const fetchAwards = async (): Promise<AwardItem[]> => {
   const { data, error } = await supabase.from('awards').select('*').order('issued_date', { ascending: false });
   if (error) throw new Error(error.message);
-  return data;
+  return data || [];
 };
 
 const Awards = () => {
-  const { data: awards, isLoading, error } = useQuery({
+  const { data: awards, isLoading, error } = useQuery<AwardItem[]>({
     queryKey: ['publicAwards'],
     queryFn: fetchAwards,
   });
