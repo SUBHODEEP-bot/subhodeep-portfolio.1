@@ -1,41 +1,44 @@
 
+```typescript
 import React, { useState } from 'react';
 import { Lock, User, Shield, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 
-const AdminLogin = () => {
+interface AdminLoginProps {
+  onLogin: () => void;
+}
+
+const AdminLogin = ({ onLogin }: AdminLoginProps) => {
+  const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      // Per your design, only one user (the owner) can log in.
-      // The email is tied to the 'admin' role in the database.
-      email: 'subhodeeppal2005@gmail.com',
-      password: password,
-    });
-    
-    setLoading(false);
-
-    if (error) {
-      toast({
-        title: "Access Denied 🚫",
-        description: error.message || "Invalid credentials. Only Subhodeep Pal can access this panel.",
-        variant: "destructive"
-      });
-    } else {
-      toast({
-        title: "Login Successful",
-        description: "Welcome back, Subhodeep! Redirecting to the dashboard..."
-      });
-      // The Admin page will automatically show the dashboard on successful login.
-    }
+    // This is a simplified, less secure login method as requested.
+    // It does not authenticate with the database, which may cause
+    // issues with data permissions (Row Level Security).
+    setTimeout(() => {
+      if (name === 'SUBHODEEP PAL' && password === 'Pal@2005') {
+        localStorage.setItem('admin_authenticated', 'true');
+        onLogin();
+        toast({
+          title: "Welcome back, Subhodeep! 🎉",
+          description: "Successfully logged into your admin panel"
+        });
+      } else {
+        toast({
+          title: "Access Denied 🚫",
+          description: "Invalid credentials. Only Subhodeep Pal can access this panel.",
+          variant: "destructive"
+        });
+      }
+      setLoading(false);
+    }, 1000);
   };
 
   return (
@@ -51,17 +54,33 @@ const AdminLogin = () => {
             <Shield className="text-white" size={40} />
           </div>
           <h1 className="text-3xl font-bold text-white mb-3">Admin Access</h1>
-          <p className="text-gray-300">Enter your password to manage your profile</p>
+          <p className="text-gray-300">Enter your credentials to manage your profile</p>
           <div className="w-16 h-1 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mx-auto mt-4"></div>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-6">
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Admin Password
+              Admin Name
             </label>
             <div className="relative">
               <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 transition-all duration-300 backdrop-blur-sm"
+                placeholder="Enter your name"
+                required
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Admin Password
+            </label>
+            <div className="relative">
+              <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               <input
                 type={showPassword ? "text" : "password"}
                 value={password}
@@ -92,7 +111,7 @@ const AdminLogin = () => {
               </>
             ) : (
               <>
-                <Lock size={20} />
+                <Shield size={20} />
                 <span>Access Admin Panel</span>
               </>
             )}
@@ -119,3 +138,4 @@ const AdminLogin = () => {
 };
 
 export default AdminLogin;
+```
