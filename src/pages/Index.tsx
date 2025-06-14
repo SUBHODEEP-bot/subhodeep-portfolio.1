@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import Hero from '../components/Hero';
 import About from '../components/About';
@@ -11,13 +10,11 @@ import Contact from '../components/Contact';
 import Navigation from '../components/Navigation';
 import ParticleBackground from '../components/ParticleBackground';
 import { supabase } from '@/integrations/supabase/client';
-import Awards from '@/components/Awards'; // New import
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState('hero');
   const [sectionVisibility, setSectionVisibility] = useState({
     show_education: true,
-    show_awards: true, // New
     show_gallery: true,
     show_blog: true
   });
@@ -68,7 +65,6 @@ const Index = () => {
       
       // Add conditional sections based on visibility
       if (sectionVisibility.show_education) sections.push('education');
-      if (sectionVisibility.show_awards) sections.push('awards'); // New
       sections.push('skills', 'projects');
       if (sectionVisibility.show_gallery) sections.push('gallery');
       if (sectionVisibility.show_blog) sections.push('blog');
@@ -113,12 +109,6 @@ const Index = () => {
         </section>
       )}
       
-      {sectionVisibility.show_awards && (
-        <section id="awards">
-          <Awards />
-        </section>
-      )}
-
       <section id="skills">
         <Skills />
       </section>

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import AdminNav from './AdminNav';
 import DashboardOverview from './sections/DashboardOverview';
@@ -10,9 +11,8 @@ import GalleryEditor from './sections/GalleryEditor';
 import BlogEditor from './sections/BlogEditor';
 import ContactManager from './sections/ContactManager';
 import SettingsEditor from './sections/SettingsEditor';
-import SocialLinksEditor from './sections/SocialLinksEditor';
+import SocialLinksEditor from './sections/SocialLinksEditor'; // Import the new editor
 import AvatarUploader from './sections/AvatarUploader';
-import AwardsEditor from './sections/AwardsEditor';
 
 interface AdminDashboardProps {
   onLogout?: () => void;
@@ -35,8 +35,6 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
         return <ProjectsEditor />;
       case 'education':
         return <EducationEditor />;
-      case 'awards':
-        return <AwardsEditor />;
       case 'gallery':
         return <GalleryEditor />;
       case 'blog':
@@ -45,7 +43,7 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
         return <ContactManager />;
       case 'settings':
         return <SettingsEditor />;
-      case 'social_links':
+      case 'social_links': // Add new case
         return <SocialLinksEditor />;
       default:
         return <DashboardOverview setActiveSection={setActiveSection} />;
