@@ -23,10 +23,16 @@ const About = () => {
         if (error) throw error;
 
         const aboutContent = data.reduce((acc, item) => {
-          // Parse the JSON string to get the actual value
-          acc[item.content_key] = typeof item.content_value === 'string' 
-            ? JSON.parse(item.content_value) 
-            : item.content_value;
+          let value = item.content_value;
+          if (typeof value === 'string') {
+            try {
+              // Try to parse as JSON first
+              value = JSON.parse(value);
+            } catch {
+              // If parsing fails, use the string as is
+            }
+          }
+          acc[item.content_key] = value;
           return acc;
         }, {} as any);
 

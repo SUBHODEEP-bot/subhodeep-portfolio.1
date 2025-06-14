@@ -1,13 +1,58 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Mail, MapPin, Phone, Send, Download, Linkedin, Github, Youtube } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const Contact = () => {
+  const [contactData, setContactData] = useState({
+    email: 'subhodeep.pal@example.com',
+    phone: '+91 9876543210',
+    location: 'Kolkata, West Bengal, India'
+  });
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     message: ''
   });
+
+  useEffect(() => {
+    const fetchContactData = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('website_content')
+          .select('content_key, content_value')
+          .eq('section', 'contact');
+
+        if (error) throw error;
+
+        const contactContent = data.reduce((acc, item) => {
+          let value = item.content_value;
+          if (typeof value === 'string') {
+            try {
+              value = JSON.parse(value);
+            } catch (e) {
+              // Not a JSON string, use as is.
+            }
+          }
+          acc[item.content_key] = value;
+          return acc;
+        }, {} as any);
+        
+        if (Object.keys(contactContent).length > 0) {
+            setContactData(prev => ({
+              email: contactContent.email || prev.email,
+              phone: contactContent.phone || prev.phone,
+              location: contactContent.location || prev.location,
+            }));
+        }
+      } catch (error) {
+        console.error('Error fetching contact data:', error);
+      }
+    };
+
+    fetchContactData();
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -57,7 +102,7 @@ const Contact = () => {
                   </div>
                   <div>
                     <h4 className="text-white font-medium mb-1">Email</h4>
-                    <p className="text-gray-300">subhodeep.pal@example.com</p>
+                    <p className="text-gray-300">{contactData.email}</p>
                   </div>
                 </div>
 
@@ -67,7 +112,7 @@ const Contact = () => {
                   </div>
                   <div>
                     <h4 className="text-white font-medium mb-1">Phone</h4>
-                    <p className="text-gray-300">+91 9876543210</p>
+                    <p className="text-gray-300">{contactData.phone}</p>
                   </div>
                 </div>
 
@@ -77,7 +122,7 @@ const Contact = () => {
                   </div>
                   <div>
                     <h4 className="text-white font-medium mb-1">Location</h4>
-                    <p className="text-gray-300">Kolkata, West Bengal, India</p>
+                    <p className="text-gray-300">{contactData.location}</p>
                   </div>
                 </div>
               </div>
