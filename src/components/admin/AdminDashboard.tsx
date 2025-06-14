@@ -1,9 +1,10 @@
+
 import React, { useState } from 'react';
 import AdminNav from './AdminNav';
 import DashboardOverview from './sections/DashboardOverview';
 import HeroEditor from './sections/HeroEditor';
 import AboutEditor from './sections/AboutEditor';
-import SkillsEditor from './sections/SkillsEditor';
+import SkillsManager from './sections/SkillsManager';
 import ProjectsEditor from './sections/ProjectsEditor';
 import EducationEditor from './sections/EducationEditor';
 import GalleryEditor from './sections/GalleryEditor';
@@ -29,7 +30,7 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
       case 'about':
         return <AboutEditor />;
       case 'skills':
-        return <SkillsEditor />;
+        return <SkillsManager />;
       case 'projects':
         return <ProjectsEditor />;
       case 'education':
