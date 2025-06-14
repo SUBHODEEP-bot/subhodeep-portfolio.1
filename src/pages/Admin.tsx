@@ -1,5 +1,4 @@
 
-```typescript
 import React, { useState, useEffect } from 'react';
 import AdminDashboard from '@/components/admin/AdminDashboard';
 import AdminLogin from '@/components/admin/AdminLogin';
@@ -32,4 +31,3 @@ const Admin = () => {
 };
 
 export default Admin;
-```

@@ -1,5 +1,4 @@
 
-```typescript
 import React, { useState } from 'react';
 import { Lock, User, Shield, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -138,4 +137,3 @@ const AdminLogin = ({ onLogin }: AdminLoginProps) => {
 };
 
 export default AdminLogin;
-```
