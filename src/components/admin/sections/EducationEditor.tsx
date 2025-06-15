@@ -100,37 +100,32 @@ const EducationEditor = () => {
   const saveEducation = async () => {
     setSaving(true);
     try {
-      for (const item of education) {
-        if (!item.institution || !item.degree) continue;
+      const itemsToUpsert = education
+        .filter(item => item.institution && item.degree) // Filter for valid items
+        .map(item => {
+          const record = {
+            institution: item.institution,
+            degree: item.degree,
+            field_of_study: item.field_of_study,
+            start_date: item.start_date || null,
+            end_date: item.end_date || null,
+            description: item.description,
+            certificate_url: item.certificate_url,
+          };
+          
+          if (!item.id.startsWith('temp-')) {
+            return { ...record, id: item.id }; // For existing items, include ID to trigger update
+          }
+          
+          return record; // For new items, omit ID to trigger insert
+        });
 
-        const isTemporary = item.id.startsWith('temp-');
+      if (itemsToUpsert.length > 0) {
+        const { error } = await supabase.from('education').upsert(itemsToUpsert);
 
-        // This creates a clean object for saving, ensuring dates are null if empty.
-        const dataToSave = {
-          institution: item.institution,
-          degree: item.degree,
-          field_of_study: item.field_of_study,
-          start_date: item.start_date || null,
-          end_date: item.end_date || null,
-          description: item.description,
-          certificate_url: item.certificate_url
-        };
-
-        if (isTemporary) {
-          // New item: insert it
-          const { error } = await supabase
-            .from('education')
-            .insert(dataToSave);
-
-          if (error) throw error;
-        } else {
-          // Existing item: update it
-          const { error } = await supabase
-            .from('education')
-            .update(dataToSave)
-            .eq('id', item.id);
-
-          if (error) throw error;
+        if (error) {
+          console.error('Supabase upsert error:', error);
+          throw error;
         }
       }
 
