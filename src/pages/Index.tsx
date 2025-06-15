@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import Hero from '../components/Hero';
 import About from '../components/About';
@@ -41,17 +42,17 @@ const Index = () => {
 
         if (error) throw error;
 
-        if (data) {
-          const settings = data.reduce((acc, item) => {
-            acc[item.content_key] = item.content_value;
-            return acc;
-          }, {} as any);
+        const settings = data.reduce((acc, item) => {
+          acc[item.content_key] = typeof item.content_value === 'string' 
+            ? JSON.parse(item.content_value) 
+            : item.content_value;
+          return acc;
+        }, {} as any);
 
-          setSectionVisibility(prev => ({
-            ...prev,
-            ...settings
-          }));
-        }
+        setSectionVisibility(prev => ({
+          ...prev,
+          ...settings
+        }));
       } catch (error) {
         console.error('Error fetching settings:', error);
       }
@@ -92,7 +93,7 @@ const Index = () => {
   }, [sectionVisibility]);
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
       <ParticleBackground />
       <Navigation activeSection={activeSection} />
       
