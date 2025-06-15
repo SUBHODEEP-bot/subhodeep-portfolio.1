@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -74,6 +75,7 @@ const ThemeController = () => {
 
   const mutation = useMutation({
     mutationFn: async (newSettings: ThemeSettings) => {
+      console.log('THEME CONTROLLER: Saving settings:', newSettings);
       const { error } = await supabase.from('website_content').upsert(
         {
           section: 'theme_settings',
@@ -179,7 +181,7 @@ const ThemeController = () => {
 
         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
           <h2 className="text-2xl font-semibold mb-6">Theme Selection</h2>
-          <p className="text-gray-400 text-sm mb-4">Select themes for the auto-cycle and preview them.</p>
+          <p className="text-gray-400 text-sm mb-4">Select themes for the auto-cycle. This is disabled if auto-cycling is off.</p>
           <div className="space-y-4">
             {availableThemes.map(theme => (
               <div key={theme.id} className="flex items-center justify-between">
@@ -189,9 +191,12 @@ const ThemeController = () => {
                       id={`theme-${theme.id}`}
                       checked={settings.selected_themes.includes(theme.id)}
                       onChange={() => handleThemeSelection(theme.id)}
-                      className="h-5 w-5 rounded bg-white/10 border-white/20 text-cyan-500 focus:ring-cyan-500 cursor-pointer"
+                      className="h-5 w-5 rounded bg-white/10 border-white/20 text-cyan-500 focus:ring-cyan-500 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                      disabled={!settings.enabled}
                     />
-                    <label htmlFor={`theme-${theme.id}`} className="ml-3 text-white cursor-pointer">{theme.name}</label>
+                    <label htmlFor={`theme-${theme.id}`} className={`ml-3 text-white cursor-pointer ${!settings.enabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                      {theme.name}
+                    </label>
                 </div>
                 <Button variant="outline" size="sm" onClick={() => applyPreviewTheme(theme.id)} className="bg-transparent hover:bg-white/10 border-white/20">
                   <Eye className="mr-2 h-4 w-4"/>

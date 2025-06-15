@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useEffect } from 'react';
+
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -18,15 +19,23 @@ const applyTheme = (theme: string) => {
   const themes = ['dark', 'midnight', 'forest', 'crimson', 'ocean', 'graphite', 'rose', 'solarized-dark', 'dracula', 'nord-dark', 'obsidian'].map(t => t === 'dark' ? 'dark' : `theme-${t}`);
   root.classList.remove(...themes);
 
+  if (!theme) { // Default to dark if theme is null/undefined
+    console.warn("ThemeProvider: Applying default 'dark' theme because provided theme is empty.");
+    root.classList.add('dark');
+    return;
+  }
+
   if (theme === 'dark') {
     root.classList.add('dark');
-  } else if (theme && theme !== 'light') {
+  } else if (theme !== 'light') {
     root.classList.add(`theme-${theme}`);
   }
 };
 
 export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   const queryClient = useQueryClient();
+  const [currentTheme, setCurrentTheme] = useState('dark');
+
   const { data: settings, isLoading } = useQuery({
     queryKey: ['theme_settings'],
     queryFn: async () => {
@@ -51,34 +60,48 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   });
 
   useEffect(() => {
-    if (isLoading || !settings) return;
+    applyTheme(currentTheme);
+  }, [currentTheme]);
+
+  useEffect(() => {
+    if (isLoading || !settings) {
+      return;
+    }
 
     let intervalId: number | undefined;
 
-    console.log('THEME PROVIDER: New settings received, applying theme.', settings);
+    console.log('THEME PROVIDER: Settings updated.', settings);
 
     if (settings.enabled && settings.selected_themes && settings.selected_themes.length > 0) {
-      const initialTheme = settings.selected_themes.includes(settings.active_theme)
-        ? settings.active_theme
-        : settings.selected_themes[0];
-
-      let currentThemeIndex = settings.selected_themes.indexOf(initialTheme);
-      if (currentThemeIndex === -1) currentThemeIndex = 0;
-
-      applyTheme(settings.selected_themes[currentThemeIndex]);
+      console.log(`THEME PROVIDER: Auto-cycling is ON. Interval: ${settings.interval}s. Themes:`, settings.selected_themes);
+      
+      const themes = settings.selected_themes;
+      let currentIndex = themes.indexOf(settings.active_theme);
+      if (currentIndex === -1) {
+        currentIndex = 0;
+      }
+      
+      if (currentTheme !== themes[currentIndex]) {
+        setCurrentTheme(themes[currentIndex]);
+      }
 
       intervalId = window.setInterval(() => {
-        currentThemeIndex = (currentThemeIndex + 1) % settings.selected_themes.length;
-        const newTheme = settings.selected_themes[currentThemeIndex];
-        applyTheme(newTheme);
+        currentIndex = (currentIndex + 1) % themes.length;
+        const newTheme = themes[currentIndex];
+        setCurrentTheme(newTheme);
       }, (settings.interval || 30) * 1000);
 
     } else {
-      applyTheme(settings.active_theme || 'dark');
+      console.log('THEME PROVIDER: Auto-cycling is OFF. Applying static theme:', settings.active_theme);
+      if (currentTheme !== settings.active_theme) {
+        setCurrentTheme(settings.active_theme || 'dark');
+      }
     }
 
     return () => {
-      if (intervalId) clearInterval(intervalId);
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
     };
   }, [settings, isLoading]);
 
