@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -92,7 +93,7 @@
   }
 
   .theme-light-blue {
-    --background: 210 100% 97%;
+    --background: 210 100% 92%;
     --foreground: 210 30% 20%;
     --card: 210 100% 100%;
     --card-foreground: 210 30% 20%;
@@ -114,7 +115,7 @@
   }
 
   .theme-purple {
-    --background: 270 90% 98%;
+    --background: 270 90% 92%;
     --foreground: 270 50% 15%;
     --card: 270 90% 100%;
     --card-foreground: 270 50% 15%;
@@ -136,7 +137,7 @@
   }
 
   .theme-sunset {
-    --background: 25 100% 97%;
+    --background: 25 100% 92%;
     --foreground: 20 80% 20%;
     --card: 25 100% 100%;
     --card-foreground: 20 80% 20%;
@@ -158,7 +159,7 @@
   }
   
   .theme-green {
-    --background: 140 70% 97%;
+    --background: 140 70% 92%;
     --foreground: 140 40% 15%;
     --card: 140 70% 100%;
     --card-foreground: 140 40% 15%;
