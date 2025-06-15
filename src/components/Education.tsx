@@ -31,11 +31,29 @@ const Education = () => {
       } catch (error) {
         console.error('Error fetching education:', error);
       } finally {
-        setLoading(false);
+        // Only set loading to false on initial fetch
+        if (loading) {
+          setLoading(false);
+        }
       }
     };
 
     fetchEducation();
+
+    const channel = supabase
+      .channel('public:education')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'education' },
+        () => {
+          fetchEducation();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const formatDate = (dateString: string) => {

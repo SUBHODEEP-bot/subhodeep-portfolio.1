@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Save, Plus, Trash2, Upload, RefreshCw } from 'lucide-react';
@@ -49,7 +48,7 @@ const EducationEditor = () => {
 
   const addEducation = () => {
     const newEducation: Education = {
-      id: '',
+      id: `temp-${Date.now()}`, // Use a temporary ID for new items for stable keys
       institution: '',
       degree: '',
       field_of_study: '',
@@ -69,7 +68,8 @@ const EducationEditor = () => {
 
   const deleteEducation = async (index: number) => {
     const educationItem = education[index];
-    if (educationItem.id) {
+    // Only attempt to delete from the database if it's a real, saved item
+    if (educationItem.id && !educationItem.id.startsWith('temp-')) {
       try {
         const { error } = await supabase
           .from('education')
@@ -89,7 +89,7 @@ const EducationEditor = () => {
           description: "Failed to delete education item",
           variant: "destructive"
         });
-        return;
+        return; // Prevent removing from UI if DB deletion fails
       }
     }
 
@@ -103,7 +103,18 @@ const EducationEditor = () => {
       for (const item of education) {
         if (!item.institution || !item.degree) continue;
 
-        if (item.id) {
+        const isTemporary = item.id.startsWith('temp-');
+
+        if (isTemporary) {
+          // New item: insert it (without the temporary id)
+          const { id, ...newItemData } = item;
+          const { error } = await supabase
+            .from('education')
+            .insert(newItemData);
+
+          if (error) throw error;
+        } else {
+          // Existing item: update it
           const { error } = await supabase
             .from('education')
             .update({
@@ -118,24 +129,10 @@ const EducationEditor = () => {
             .eq('id', item.id);
 
           if (error) throw error;
-        } else {
-          const { error } = await supabase
-            .from('education')
-            .insert({
-              institution: item.institution,
-              degree: item.degree,
-              field_of_study: item.field_of_study,
-              start_date: item.start_date || null,
-              end_date: item.end_date || null,
-              description: item.description,
-              certificate_url: item.certificate_url
-            });
-
-          if (error) throw error;
         }
       }
 
-      await fetchEducation();
+      await fetchEducation(); // Refetch to get correct IDs and latest data
       toast({
         title: "Success",
         description: "Education timeline updated successfully!"
@@ -181,7 +178,7 @@ const EducationEditor = () => {
 
         <div className="space-y-6">
           {education.map((item, index) => (
-            <div key={index} className="bg-white/5 rounded-lg p-6 border border-white/10">
+            <div key={item.id} className="bg-white/5 rounded-lg p-6 border border-white/10">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
