@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -55,6 +54,24 @@ export const themes: Record<Theme, string> = {
   sable: 'theme-sable',
   jet: 'theme-jet',
   gunmetal: 'theme-gunmetal',
+};
+
+export const themeGradients: Record<Theme, string> = {
+    dark: 'linear-gradient(to bottom right, #0F172A, #111827, #0F172A)',
+    blue: 'linear-gradient(to bottom right, #0F172A, #1E3A8A, #312E81)',
+    purple: 'linear-gradient(to bottom right, #1E1B4B, #4C1D95, #5B21B6)',
+    green: 'linear-gradient(to bottom right, #064E3B, #047857, #059669)',
+    sunset: 'linear-gradient(to bottom right, #7F1D1D, #B91C1C, #F97316)',
+    onyx: 'linear-gradient(to bottom right, #0f0f0f, #2d3436, #0f0f0f)',
+    charcoal: 'linear-gradient(to bottom right, #36454F, #2C3E50, #36454F)',
+    midnight: 'linear-gradient(to bottom right, #000033, #000066, #191970)',
+    graphite: 'linear-gradient(to bottom right, #484848, #282828, #484848)',
+    ebony: 'linear-gradient(to bottom right, #555d50, #3c443c, #555d50)',
+    noir: 'linear-gradient(to bottom right, #252525, #000000, #252525)',
+    obsidian: 'linear-gradient(to bottom right, #0B1D2A, #122B3E, #0B1D2A)',
+    sable: 'linear-gradient(to bottom right, #40322c, #261e1a, #40322c)',
+    jet: 'linear-gradient(to bottom right, #343434, #1b1b1b, #343434)',
+    gunmetal: 'linear-gradient(to bottom right, #2a3439, #2c3539, #2a3439)',
 };
 
 export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {

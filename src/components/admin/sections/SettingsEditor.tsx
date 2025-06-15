@@ -1,8 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Save, RefreshCw, Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Theme, ThemeSettings } from '@/providers/ThemeProvider';
+import { themeGradients } from '@/providers/ThemeProvider';
+import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
 
 const defaultThemeSettings: ThemeSettings = {
   static_theme: 'dark',
@@ -181,13 +184,30 @@ const SettingsEditor = () => {
           {!settings.theme_settings.auto_cycle_enabled ? (
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">Static Theme</label>
-              <select
+              <Select
                 value={settings.theme_settings.static_theme}
-                onChange={(e) => updateThemeSetting('static_theme', e.target.value as Theme)}
-                className="w-full capitalize px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors"
+                onValueChange={(value) => updateThemeSetting('static_theme', value as Theme)}
               >
-                {availableThemes.map(theme => <option key={theme} value={theme}>{theme}</option>)}
-              </select>
+                <SelectTrigger className="w-full capitalize px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-white focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors h-auto">
+                    <div className="flex items-center gap-3">
+                        <div 
+                            className="w-6 h-6 rounded-md border border-white/20" 
+                            style={{ background: themeGradients[settings.theme_settings.static_theme] }}
+                        ></div>
+                        <span>{settings.theme_settings.static_theme}</span>
+                    </div>
+                </SelectTrigger>
+                <SelectContent className="capitalize bg-slate-900 border-slate-700 text-white">
+                    {availableThemes.map(theme => (
+                    <SelectItem key={theme} value={theme} className="hover:bg-slate-800 focus:bg-slate-700 cursor-pointer">
+                        <div className="flex items-center gap-3">
+                            <div className="w-6 h-6 rounded-md border border-white/20" style={{ background: themeGradients[theme] }}></div>
+                            <span>{theme}</span>
+                        </div>
+                    </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
             </div>
           ) : (
             <>
@@ -205,14 +225,15 @@ const SettingsEditor = () => {
                 <label className="block text-sm font-medium text-gray-300 mb-2">Themes to Cycle</label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
                   {availableThemes.map(theme => (
-                    <label key={theme} className="flex items-center space-x-2 cursor-pointer capitalize bg-white/5 border border-white/20 rounded-lg p-3 text-white hover:bg-white/10">
+                    <label key={theme} className="flex items-center space-x-3 cursor-pointer capitalize bg-white/5 border border-white/20 rounded-lg p-3 text-white hover:bg-white/10 transition-colors">
                       <input
                         type="checkbox"
                         checked={settings.theme_settings.cycle_themes.includes(theme)}
                         onChange={() => handleThemeCycleChange(theme)}
-                        className="form-checkbox h-5 w-5 rounded text-cyan-500 bg-gray-700 border-gray-600 focus:ring-cyan-600"
+                        className="form-checkbox h-5 w-5 rounded text-cyan-500 bg-gray-700 border-gray-600 focus:ring-cyan-600 flex-shrink-0"
                       />
-                      <span>{theme}</span>
+                      <div className="w-6 h-6 rounded-md border border-white/20 flex-shrink-0" style={{ background: themeGradients[theme] }}></div>
+                      <span className="truncate">{theme}</span>
                     </label>
                   ))}
                 </div>
