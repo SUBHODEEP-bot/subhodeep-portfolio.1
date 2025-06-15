@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import { Lock, User, Shield, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 
 interface AdminLoginProps {
   onLogin: () => void;
@@ -15,79 +14,30 @@ const AdminLogin = ({ onLogin }: AdminLoginProps) => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    try {
-      // Check if the name matches the expected admin name
-      if (name !== 'SUBHODEEP PAL') {
-        toast({
-          title: "Access Denied 🚫",
-          description: "Invalid credentials. Only Subhodeep Pal can access this panel.",
-          variant: "destructive"
-        });
-        setLoading(false);
-        return;
-      }
-
-      // Try to sign in with email and password
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: 'subhodeeppal2005@gmail.com',
-        password: password,
-      });
-
-      if (error) {
-        toast({
-          title: "Authentication Failed 🚫",
-          description: "Invalid password. Please check your credentials.",
-          variant: "destructive"
-        });
-        setLoading(false);
-        return;
-      }
-
-      if (data.user) {
-        // Check if user has admin role
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', data.user.id)
-          .single();
-
-        if (profileError || profile?.role !== 'admin') {
-          // If no profile exists or not admin, create/update profile
-          const { error: upsertError } = await supabase
-            .from('profiles')
-            .upsert({
-              id: data.user.id,
-              full_name: 'SUBHODEEP PAL',
-              email: 'subhodeeppal2005@gmail.com',
-              role: 'admin'
-            });
-
-          if (upsertError) {
-            console.error('Error creating admin profile:', upsertError);
-          }
-        }
-
+    // This is a simplified, less secure login method as requested.
+    // It does not authenticate with the database, which may cause
+    // issues with data permissions (Row Level Security).
+    setTimeout(() => {
+      if (name === 'SUBHODEEP PAL' && password === 'Pal@2005') {
         localStorage.setItem('admin_authenticated', 'true');
         onLogin();
         toast({
           title: "Welcome back, Subhodeep! 🎉",
           description: "Successfully logged into your admin panel"
         });
+      } else {
+        toast({
+          title: "Access Denied 🚫",
+          description: "Invalid credentials. Only Subhodeep Pal can access this panel.",
+          variant: "destructive"
+        });
       }
-    } catch (error) {
-      console.error('Login error:', error);
-      toast({
-        title: "Login Error",
-        description: "An unexpected error occurred. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
       setLoading(false);
-    }
+    }, 1000);
   };
 
   return (
