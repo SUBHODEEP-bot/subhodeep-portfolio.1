@@ -105,27 +105,29 @@ const EducationEditor = () => {
 
         const isTemporary = item.id.startsWith('temp-');
 
+        // This creates a clean object for saving, ensuring dates are null if empty.
+        const dataToSave = {
+          institution: item.institution,
+          degree: item.degree,
+          field_of_study: item.field_of_study,
+          start_date: item.start_date || null,
+          end_date: item.end_date || null,
+          description: item.description,
+          certificate_url: item.certificate_url
+        };
+
         if (isTemporary) {
-          // New item: insert it (without the temporary id)
-          const { id, ...newItemData } = item;
+          // New item: insert it
           const { error } = await supabase
             .from('education')
-            .insert(newItemData);
+            .insert(dataToSave);
 
           if (error) throw error;
         } else {
           // Existing item: update it
           const { error } = await supabase
             .from('education')
-            .update({
-              institution: item.institution,
-              degree: item.degree,
-              field_of_study: item.field_of_study,
-              start_date: item.start_date || null,
-              end_date: item.end_date || null,
-              description: item.description,
-              certificate_url: item.certificate_url
-            })
+            .update(dataToSave)
             .eq('id', item.id);
 
           if (error) throw error;
