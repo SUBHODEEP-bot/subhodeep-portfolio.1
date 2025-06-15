@@ -14,6 +14,18 @@ const defaultThemeSettings: ThemeSettings = {
   cycle_themes: ['dark', 'blue'],
 };
 
+// Type guard to check if a value is ThemeSettings
+const isThemeSettings = (value: any): value is ThemeSettings => {
+  return (
+    value &&
+    typeof value === 'object' &&
+    typeof value.static_theme === 'string' &&
+    typeof value.auto_cycle_enabled === 'boolean' &&
+    typeof value.cycle_interval === 'number' &&
+    Array.isArray(value.cycle_themes)
+  );
+};
+
 const SettingsEditor = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -44,28 +56,28 @@ const SettingsEditor = () => {
       const settingsData = data.reduce((acc, item) => {
         let value = item.content_value;
         
-        // Handle theme_settings specially to ensure proper parsing
+        // Handle theme_settings specially
         if (item.content_key === 'theme_settings') {
           try {
+            let parsedValue: any = value;
+            
             if (typeof value === 'string') {
               if (value.trim() === '') {
-                value = defaultThemeSettings;
+                parsedValue = defaultThemeSettings;
               } else {
-                value = JSON.parse(value);
+                parsedValue = JSON.parse(value);
               }
-            } else if (typeof value === 'object' && value !== null) {
-              // Already an object, use as is
-            } else {
-              value = defaultThemeSettings;
             }
             
             // Validate the theme settings structure
-            if (!value.static_theme || !Array.isArray(value.cycle_themes)) {
-              value = defaultThemeSettings;
+            if (isThemeSettings(parsedValue)) {
+              acc[item.content_key] = parsedValue;
+            } else {
+              acc[item.content_key] = defaultThemeSettings;
             }
           } catch (parseError) {
             console.error('Error parsing theme_settings:', parseError);
-            value = defaultThemeSettings;
+            acc[item.content_key] = defaultThemeSettings;
           }
         } else {
           // Handle other settings
@@ -76,7 +88,6 @@ const SettingsEditor = () => {
           }
         }
         
-        acc[item.content_key] = value;
         return acc;
       }, {} as any);
 
@@ -103,7 +114,7 @@ const SettingsEditor = () => {
       console.log('Saving settings:', settings);
       
       const updates = Object.entries(settings).map(([key, value]) => {
-        let contentValue;
+        let contentValue: string;
         
         if (key === 'theme_settings') {
           // Ensure theme_settings is properly stringified
