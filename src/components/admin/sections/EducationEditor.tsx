@@ -19,10 +19,33 @@ const EducationEditor = () => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [education, setEducation] = useState<Education[]>([]);
+  const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
     fetchEducation();
+    checkUserRole();
   }, []);
+
+  const checkUserRole = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      console.log('Current user:', user);
+      
+      if (user) {
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+        
+        console.log('User profile:', profile);
+        console.log('Profile error:', error);
+        setUserRole(profile?.role || null);
+      }
+    } catch (error) {
+      console.error('Error checking user role:', error);
+    }
+  };
 
   const fetchEducation = async () => {
     setLoading(true);
@@ -31,6 +54,9 @@ const EducationEditor = () => {
         .from('education')
         .select('*')
         .order('start_date', { ascending: false });
+
+      console.log('Fetch education data:', data);
+      console.log('Fetch education error:', error);
 
       if (error) throw error;
       setEducation(data || []);
@@ -48,7 +74,7 @@ const EducationEditor = () => {
 
   const addEducation = () => {
     const newEducation: Education = {
-      id: `temp-${Date.now()}`, // Use a temporary ID for new items for stable keys
+      id: `temp-${Date.now()}`,
       institution: '',
       degree: '',
       field_of_study: '',
@@ -68,7 +94,6 @@ const EducationEditor = () => {
 
   const deleteEducation = async (index: number) => {
     const educationItem = education[index];
-    // Only attempt to delete from the database if it's a real, saved item
     if (educationItem.id && !educationItem.id.startsWith('temp-')) {
       try {
         const { error } = await supabase
@@ -89,7 +114,7 @@ const EducationEditor = () => {
           description: "Failed to delete education item",
           variant: "destructive"
         });
-        return; // Prevent removing from UI if DB deletion fails
+        return;
       }
     }
 
@@ -100,36 +125,69 @@ const EducationEditor = () => {
   const saveEducation = async () => {
     setSaving(true);
     try {
-      const itemsToUpsert = education
-        .filter(item => item.institution && item.degree) // Filter for valid items
-        .map(item => {
-          const record = {
-            institution: item.institution,
-            degree: item.degree,
-            field_of_study: item.field_of_study,
-            start_date: item.start_date || null,
-            end_date: item.end_date || null,
-            description: item.description,
-            certificate_url: item.certificate_url,
-          };
-          
-          if (!item.id.startsWith('temp-')) {
-            return { ...record, id: item.id }; // For existing items, include ID to trigger update
-          }
-          
-          return record; // For new items, omit ID to trigger insert
+      console.log('Starting save operation...');
+      console.log('User role:', userRole);
+      
+      // First check authentication
+      const { data: { user } } = await supabase.auth.getUser();
+      console.log('Auth user during save:', user);
+      
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      const validEducation = education.filter(item => item.institution && item.degree);
+      console.log('Valid education items to save:', validEducation);
+
+      if (validEducation.length === 0) {
+        toast({
+          title: "Warning",
+          description: "No valid education items to save",
+          variant: "destructive"
         });
+        return;
+      }
 
-      if (itemsToUpsert.length > 0) {
-        const { error } = await supabase.from('education').upsert(itemsToUpsert);
+      // Prepare items for upsert
+      const itemsToSave = validEducation.map(item => {
+        const record = {
+          institution: item.institution,
+          degree: item.degree,
+          field_of_study: item.field_of_study,
+          start_date: item.start_date || null,
+          end_date: item.end_date || null,
+          description: item.description,
+          certificate_url: item.certificate_url,
+        };
+        
+        // Include ID only for existing items (not temp ones)
+        if (!item.id.startsWith('temp-')) {
+          return { ...record, id: item.id };
+        }
+        
+        return record;
+      });
 
+      console.log('Items to save:', itemsToSave);
+
+      // Try to save each item individually to get better error messages
+      for (const item of itemsToSave) {
+        console.log('Saving item:', item);
+        
+        const { data, error } = await supabase
+          .from('education')
+          .upsert(item)
+          .select();
+        
+        console.log('Save result:', { data, error });
+        
         if (error) {
-          console.error('Supabase upsert error:', error);
+          console.error('Individual save error:', error);
           throw error;
         }
       }
 
-      await fetchEducation(); // Refetch to get correct IDs and latest data
+      await fetchEducation();
       toast({
         title: "Success",
         description: "Education timeline updated successfully!"
@@ -138,7 +196,7 @@ const EducationEditor = () => {
       console.error('Error saving education:', error);
       toast({
         title: "Error",
-        description: "Failed to save education data",
+        description: `Failed to save education data: ${error.message}`,
         variant: "destructive"
       });
     } finally {
@@ -159,6 +217,9 @@ const EducationEditor = () => {
       <div className="text-center">
         <h1 className="text-4xl font-bold text-white mb-4">Education Timeline Editor</h1>
         <p className="text-gray-300">Manage your educational background and achievements</p>
+        {userRole && (
+          <p className="text-cyan-400 mt-2">Current role: {userRole}</p>
+        )}
       </div>
 
       <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
