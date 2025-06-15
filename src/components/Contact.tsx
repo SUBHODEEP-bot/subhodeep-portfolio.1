@@ -1,8 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { Mail, MapPin, Phone, Send, Download, Linkedin, Github, Youtube, Twitter, Instagram, Facebook, Gitlab, Dribbble, Codepen } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface SocialLink {
   platform: string;
@@ -185,33 +185,25 @@ const Contact = () => {
             {/* Social Links */}
             <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
               <h3 className="text-xl font-semibold text-white mb-6">Connect with Me</h3>
-              <TooltipProvider>
-                <div className="flex flex-wrap gap-4">
-                  {socialLinks.map((social) => {
-                    const IconComponent = iconComponents[social.icon];
-                    if (!IconComponent) return null; // or a default icon
+              <div className="flex flex-wrap gap-4">
+                {socialLinks.map((social) => {
+                  const IconComponent = iconComponents[social.icon];
+                  if (!IconComponent) return null; // or a default icon
 
-                    return (
-                      <Tooltip key={social.platform}>
-                        <TooltipTrigger asChild>
-                          <a
-                            href={social.url || '#'}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center text-white transition-all duration-300 hover:bg-white/20 transform hover:scale-110"
-                            aria-label={social.platform}
-                          >
-                            <IconComponent size={20} />
-                          </a>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Visit my {social.platform}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    );
-                  })}
-                </div>
-              </TooltipProvider>
+                  return (
+                    <a
+                      key={social.platform}
+                      href={social.url || '#'}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center text-white transition-all duration-300 hover:bg-white/20 transform hover:scale-110"
+                      aria-label={social.platform}
+                    >
+                      <IconComponent size={20} />
+                    </a>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Resume Download */}
