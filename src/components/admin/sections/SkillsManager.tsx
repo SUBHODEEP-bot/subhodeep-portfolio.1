@@ -4,7 +4,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { Plus, Trash2, Save, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import * as Icons from 'lucide-react';
-import { logActivity } from '@/integrations/supabase/activityLogger';
 
 interface Skill {
   id?: string;
@@ -39,7 +38,10 @@ const SkillsManager = () => {
         .select('*')
         .order('category, name');
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching skills:', error);
+        throw error;
+      }
       setSkills(data || []);
     } catch (error) {
       console.error('Error fetching skills:', error);
@@ -60,54 +62,67 @@ const SkillsManager = () => {
     }
 
     try {
+      console.log('Adding skill:', newSkill);
       const { data, error } = await supabase
         .from('skills')
-        .insert([newSkill])
+        .insert([{
+          name: newSkill.name,
+          category: newSkill.category,
+          proficiency: newSkill.proficiency,
+          icon_name: newSkill.icon_name
+        }])
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error adding skill:', error);
+        throw error;
+      }
       
-      await logActivity('Added new skill', { name: newSkill.name });
+      console.log('Skill added successfully:', data);
       setSkills([...skills, data].sort((a,b) => a.category.localeCompare(b.category) || a.name.localeCompare(b.name)));
       setNewSkill({ name: '', category: 'programming', proficiency: 50, icon_name: 'Code' });
       toast({ title: "Success", description: "Skill added successfully!" });
     } catch (error) {
       console.error('Error adding skill:', error);
-      toast({ title: "Error", description: "Failed to add skill", variant: "destructive" });
+      toast({ title: "Error", description: `Failed to add skill: ${error.message}`, variant: "destructive" });
     }
   };
 
   const deleteSkill = async (id: string) => {
     try {
+      console.log('Deleting skill with id:', id);
       const skillToDelete = skills.find(s => s.id === id);
       const { error } = await supabase.from('skills').delete().eq('id', id);
-      if (error) throw error;
-      setSkills(skills.filter(skill => skill.id !== id));
-      if (skillToDelete) {
-        await logActivity('Deleted skill', { name: skillToDelete.name });
+      if (error) {
+        console.error('Error deleting skill:', error);
+        throw error;
       }
+      setSkills(skills.filter(skill => skill.id !== id));
       toast({ title: "Success", description: "Skill deleted successfully!" });
     } catch (error) {
       console.error('Error deleting skill:', error);
-      toast({ title: "Error", description: "Failed to delete skill", variant: "destructive" });
+      toast({ title: "Error", description: `Failed to delete skill: ${error.message}`, variant: "destructive" });
     }
   };
 
   const updateSkill = async (skill: Skill) => {
     try {
+      console.log('Updating skill:', skill);
       const { id, ...skillData } = skill;
       const { error } = await supabase
         .from('skills')
         .update(skillData)
         .eq('id', id);
 
-      if (error) throw error;
-      await logActivity('Updated skill', { name: skill.name });
+      if (error) {
+        console.error('Error updating skill:', error);
+        throw error;
+      }
       toast({ title: "Success", description: "Skill updated successfully!" });
     } catch (error) {
       console.error('Error updating skill:', error);
-      toast({ title: "Error", description: "Failed to update skill", variant: "destructive" });
+      toast({ title: "Error", description: `Failed to update skill: ${error.message}`, variant: "destructive" });
     }
   };
   
@@ -155,7 +170,7 @@ const SkillsManager = () => {
               onChange={(e) => setNewSkill({ ...newSkill, category: e.target.value })}
               className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-white focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors capitalize"
             >
-              {skillCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+              {skillCategories.map(cat => <option key={cat} value={cat} className="bg-gray-800">{cat}</option>)}
             </select>
           </div>
           <div>
@@ -211,7 +226,7 @@ const SkillsManager = () => {
                   onChange={(e) => handleSkillChange(skill.id!, 'category', e.target.value)}
                   className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white capitalize"
                 >
-                  {skillCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                  {skillCategories.map(cat => <option key={cat} value={cat} className="bg-gray-800">{cat}</option>)}
                 </select>
                 <div className="flex items-center gap-2">
                   <input

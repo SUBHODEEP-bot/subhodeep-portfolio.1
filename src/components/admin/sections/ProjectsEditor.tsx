@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Plus, Trash2, Save, RefreshCw, ExternalLink, Github } from 'lucide-react';
@@ -42,7 +41,10 @@ const ProjectsEditor = () => {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching projects:', error);
+        throw error;
+      }
       setProjects(data || []);
     } catch (error) {
       console.error('Error fetching projects:', error);
@@ -67,14 +69,27 @@ const ProjectsEditor = () => {
     }
 
     try {
+      console.log('Adding project:', newProject);
       const { data, error } = await supabase
         .from('projects')
-        .insert([newProject])
+        .insert([{
+          title: newProject.title,
+          description: newProject.description,
+          tech_stack: newProject.tech_stack,
+          github_url: newProject.github_url,
+          live_url: newProject.live_url,
+          image_url: newProject.image_url,
+          featured: newProject.featured
+        }])
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error adding project:', error);
+        throw error;
+      }
 
+      console.log('Project added successfully:', data);
       setProjects([data, ...projects]);
       setNewProject({
         title: '',
@@ -94,7 +109,7 @@ const ProjectsEditor = () => {
       console.error('Error adding project:', error);
       toast({
         title: "Error",
-        description: "Failed to add project",
+        description: `Failed to add project: ${error.message}`,
         variant: "destructive"
       });
     }
@@ -102,12 +117,16 @@ const ProjectsEditor = () => {
 
   const deleteProject = async (id: string) => {
     try {
+      console.log('Deleting project with id:', id);
       const { error } = await supabase
         .from('projects')
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error deleting project:', error);
+        throw error;
+      }
 
       setProjects(projects.filter(project => project.id !== id));
       
@@ -119,7 +138,7 @@ const ProjectsEditor = () => {
       console.error('Error deleting project:', error);
       toast({
         title: "Error",
-        description: "Failed to delete project",
+        description: `Failed to delete project: ${error.message}`,
         variant: "destructive"
       });
     }
@@ -127,20 +146,17 @@ const ProjectsEditor = () => {
 
   const updateProject = async (project: Project) => {
     try {
+      console.log('Updating project:', project);
+      const { id, ...projectData } = project;
       const { error } = await supabase
         .from('projects')
-        .update({
-          title: project.title,
-          description: project.description,
-          tech_stack: project.tech_stack,
-          github_url: project.github_url,
-          live_url: project.live_url,
-          image_url: project.image_url,
-          featured: project.featured
-        })
-        .eq('id', project.id);
+        .update(projectData)
+        .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating project:', error);
+        throw error;
+      }
 
       toast({
         title: "Success",
@@ -150,7 +166,7 @@ const ProjectsEditor = () => {
       console.error('Error updating project:', error);
       toast({
         title: "Error",
-        description: "Failed to update project",
+        description: `Failed to update project: ${error.message}`,
         variant: "destructive"
       });
     }
