@@ -300,7 +300,7 @@ const Contact = () => {
           {/* Footer */}
           <div className="text-center mt-16 pt-8 border-t border-white/20">
             <p className="text-gray-400">
-              © 2024 Subhodeep Pal. All Rights Reserved.
+              © 2024 Subhodeep Pal. Built with passion and powered by innovation.
             </p>
           </div>
         </div>
