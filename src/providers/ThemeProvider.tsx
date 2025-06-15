@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -80,28 +81,71 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const fetchThemeSettings = async () => {
-      const { data, error } = await supabase
-        .from('website_content')
-        .select('content_value')
-        .eq('section', 'settings')
-        .eq('content_key', 'theme_settings')
-        .single();
+      try {
+        console.log('Fetching theme settings from database...');
+        
+        const { data, error } = await supabase
+          .from('website_content')
+          .select('content_value')
+          .eq('section', 'settings')
+          .eq('content_key', 'theme_settings')
+          .single();
 
-      if (error || !data) {
-        console.warn('Theme settings not found, using default. Error:', error?.message);
-        setSettings(defaultSettings);
-      } else {
-        const fetchedSettings = data.content_value as unknown;
-        if (isThemeSettings(fetchedSettings)) {
-            setSettings(fetchedSettings);
-        } else {
-            console.warn('Fetched theme settings are invalid, using default.');
-            setSettings(defaultSettings);
+        if (error) {
+          console.warn('Theme settings not found in database, using defaults. Error:', error?.message);
+          setSettings(defaultSettings);
+          return;
         }
+
+        if (!data?.content_value) {
+          console.warn('Theme settings content_value is null, using defaults');
+          setSettings(defaultSettings);
+          return;
+        }
+
+        let fetchedSettings: unknown;
+        
+        // Handle different data types
+        if (typeof data.content_value === 'string') {
+          try {
+            // Only parse if it's a non-empty string
+            if (data.content_value.trim() === '') {
+              console.warn('Empty theme settings string, using defaults');
+              setSettings(defaultSettings);
+              return;
+            }
+            fetchedSettings = JSON.parse(data.content_value);
+          } catch (parseError) {
+            console.error('Failed to parse theme settings JSON:', parseError);
+            console.log('Raw content_value:', data.content_value);
+            setSettings(defaultSettings);
+            return;
+          }
+        } else if (typeof data.content_value === 'object') {
+          fetchedSettings = data.content_value;
+        } else {
+          console.warn('Unexpected theme settings data type:', typeof data.content_value);
+          setSettings(defaultSettings);
+          return;
+        }
+
+        if (isThemeSettings(fetchedSettings)) {
+          console.log('Successfully loaded theme settings:', fetchedSettings);
+          setSettings(fetchedSettings);
+        } else {
+          console.warn('Fetched theme settings are invalid structure, using defaults');
+          console.log('Invalid settings:', fetchedSettings);
+          setSettings(defaultSettings);
+        }
+      } catch (error) {
+        console.error('Error fetching theme settings:', error);
+        setSettings(defaultSettings);
       }
     };
+
     fetchThemeSettings();
 
+    // Set up real-time subscription for theme settings changes
     const channel = supabase
       .channel('theme-settings-channel')
       .on(
@@ -113,12 +157,14 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
           filter: 'content_key=eq.theme_settings',
         },
         (payload) => {
+          console.log('Received theme settings update:', payload);
           if (payload.new && 'content_value' in payload.new) {
             const newSettings = payload.new.content_value as unknown;
             if (isThemeSettings(newSettings)) {
-                setSettings(newSettings);
+              console.log('Applied updated theme settings:', newSettings);
+              setSettings(newSettings);
             } else {
-                console.warn('Received invalid theme settings from subscription.');
+              console.warn('Received invalid theme settings from subscription.');
             }
           }
         }
@@ -131,32 +177,45 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    let themeCycleInterval: NodeJS.Timeout;
+    let themeCycleInterval: NodeJS.Timeout | null = null;
 
     if (settings) {
+      console.log('Applying theme settings:', settings);
+      
       if (settings.auto_cycle_enabled && settings.cycle_themes.length > 0) {
-        let currentIndex = settings.cycle_themes.indexOf(currentTheme);
-        if (currentIndex === -1) currentIndex = 0;
+        console.log('Starting theme cycle with themes:', settings.cycle_themes, 'interval:', settings.cycle_interval);
         
+        let currentIndex = settings.cycle_themes.indexOf(currentTheme);
+        if (currentIndex === -1) {
+          currentIndex = 0;
+        }
+        
+        // Set initial theme
         setCurrentTheme(settings.cycle_themes[currentIndex]);
 
+        // Start cycling through themes
         themeCycleInterval = setInterval(() => {
           currentIndex = (currentIndex + 1) % settings.cycle_themes.length;
-          setCurrentTheme(settings.cycle_themes[currentIndex]);
+          const nextTheme = settings.cycle_themes[currentIndex];
+          console.log('Cycling to theme:', nextTheme);
+          setCurrentTheme(nextTheme);
         }, settings.cycle_interval);
       } else {
+        console.log('Using static theme:', settings.static_theme);
         setCurrentTheme(settings.static_theme);
       }
     }
 
     return () => {
       if (themeCycleInterval) {
+        console.log('Clearing theme cycle interval');
         clearInterval(themeCycleInterval);
       }
     };
-  }, [settings]);
+  }, [settings, currentTheme]);
 
   useEffect(() => {
+    console.log('Applying theme class:', currentTheme);
     document.body.className = '';
     document.body.classList.add(themes[currentTheme] || themes.dark);
   }, [currentTheme]);

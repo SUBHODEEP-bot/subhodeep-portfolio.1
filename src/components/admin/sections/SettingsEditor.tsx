@@ -43,11 +43,40 @@ const SettingsEditor = () => {
 
       const settingsData = data.reduce((acc, item) => {
         let value = item.content_value;
-        try {
-          acc[item.content_key] = typeof value === 'string' ? JSON.parse(value) : value;
-        } catch {
-          acc[item.content_key] = value;
+        
+        // Handle theme_settings specially to ensure proper parsing
+        if (item.content_key === 'theme_settings') {
+          try {
+            if (typeof value === 'string') {
+              if (value.trim() === '') {
+                value = defaultThemeSettings;
+              } else {
+                value = JSON.parse(value);
+              }
+            } else if (typeof value === 'object' && value !== null) {
+              // Already an object, use as is
+            } else {
+              value = defaultThemeSettings;
+            }
+            
+            // Validate the theme settings structure
+            if (!value.static_theme || !Array.isArray(value.cycle_themes)) {
+              value = defaultThemeSettings;
+            }
+          } catch (parseError) {
+            console.error('Error parsing theme_settings:', parseError);
+            value = defaultThemeSettings;
+          }
+        } else {
+          // Handle other settings
+          try {
+            acc[item.content_key] = typeof value === 'string' ? JSON.parse(value) : value;
+          } catch {
+            acc[item.content_key] = value;
+          }
         }
+        
+        acc[item.content_key] = value;
         return acc;
       }, {} as any);
 
@@ -71,13 +100,28 @@ const SettingsEditor = () => {
   const saveSettings = async () => {
     setSaving(true);
     try {
-      const updates = Object.entries(settings).map(([key, value]) => ({
-        section: 'settings',
-        content_key: key,
-        content_value: typeof value === 'string' ? value : JSON.stringify(value)
-      }));
+      console.log('Saving settings:', settings);
+      
+      const updates = Object.entries(settings).map(([key, value]) => {
+        let contentValue;
+        
+        if (key === 'theme_settings') {
+          // Ensure theme_settings is properly stringified
+          contentValue = JSON.stringify(value);
+          console.log('Saving theme_settings as:', contentValue);
+        } else {
+          contentValue = typeof value === 'string' ? value : JSON.stringify(value);
+        }
+        
+        return {
+          section: 'settings',
+          content_key: key,
+          content_value: contentValue
+        };
+      });
 
       for (const update of updates) {
+        console.log('Upserting:', update);
         const { error } = await supabase
           .from('website_content')
           .upsert(update, { onConflict: 'section,content_key' });
@@ -87,7 +131,7 @@ const SettingsEditor = () => {
 
       toast({
         title: "Success",
-        description: "Settings updated successfully!"
+        description: "Settings updated successfully! Theme changes will apply immediately."
       });
     } catch (error) {
       console.error('Error saving settings:', error);
