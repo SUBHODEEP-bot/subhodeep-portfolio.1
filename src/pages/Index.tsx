@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import Hero from '../components/Hero';
 import About from '../components/About';
@@ -42,17 +41,17 @@ const Index = () => {
 
         if (error) throw error;
 
-        const settings = data.reduce((acc, item) => {
-          acc[item.content_key] = typeof item.content_value === 'string' 
-            ? JSON.parse(item.content_value) 
-            : item.content_value;
-          return acc;
-        }, {} as any);
+        if (data) {
+          const settings = data.reduce((acc, item) => {
+            acc[item.content_key] = item.content_value;
+            return acc;
+          }, {} as any);
 
-        setSectionVisibility(prev => ({
-          ...prev,
-          ...settings
-        }));
+          setSectionVisibility(prev => ({
+            ...prev,
+            ...settings
+          }));
+        }
       } catch (error) {
         console.error('Error fetching settings:', error);
       }
