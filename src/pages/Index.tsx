@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import Hero from '../components/Hero';
 import About from '../components/About';
@@ -93,7 +92,7 @@ const Index = () => {
   }, [sectionVisibility]);
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
+    <div className="relative min-h-screen">
       <ParticleBackground />
       <Navigation activeSection={activeSection} />
       

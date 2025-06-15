@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -35,6 +36,15 @@
     --ring: 222.2 84% 4.9%;
 
     --radius: 0.5rem;
+
+    /* Theme gradients */
+    --gradient-dark: linear-gradient(to bottom right, #0F172A, #111827, #0F172A);
+    --gradient-blue: linear-gradient(to bottom right, #0F172A, #1E3A8A, #312E81);
+    --gradient-purple: linear-gradient(to bottom right, #1E1B4B, #4C1D95, #5B21B6);
+    --gradient-green: linear-gradient(to bottom right, #064E3B, #047857, #059669);
+    --gradient-sunset: linear-gradient(to bottom right, #7F1D1D, #B91C1C, #F97316);
+
+    --bg-gradient: var(--gradient-dark); /* Default gradient */
 
     --sidebar-background: 0 0% 98%;
 
@@ -99,5 +109,14 @@
 
   body {
     @apply bg-background text-foreground;
+    background-color: hsl(var(--background));
+    background-image: var(--bg-gradient);
+    transition: background-image 1s ease-in-out;
   }
+
+  body.theme-dark { --bg-gradient: var(--gradient-dark); }
+  body.theme-blue { --bg-gradient: var(--gradient-blue); }
+  body.theme-purple { --bg-gradient: var(--gradient-purple); }
+  body.theme-green { --bg-gradient: var(--gradient-green); }
+  body.theme-sunset { --bg-gradient: var(--gradient-sunset); }
 }

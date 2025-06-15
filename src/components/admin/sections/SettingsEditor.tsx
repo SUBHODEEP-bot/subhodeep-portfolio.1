@@ -1,8 +1,15 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Save, Upload, Download, RefreshCw } from 'lucide-react';
+import { Save, RefreshCw, Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import type { ThemeSettings } from '@/providers/ThemeProvider';
+
+const defaultThemeSettings: ThemeSettings = {
+  static_theme: 'dark',
+  auto_cycle_enabled: false,
+  cycle_interval: 30000,
+  cycle_themes: ['dark', 'blue'],
+};
 
 const SettingsEditor = () => {
   const { toast } = useToast();
@@ -13,7 +20,8 @@ const SettingsEditor = () => {
     dark_mode: false,
     show_education: true,
     show_gallery: true,
-    show_blog: true
+    show_blog: true,
+    theme_settings: defaultThemeSettings,
   });
 
   useEffect(() => {
@@ -31,30 +39,19 @@ const SettingsEditor = () => {
       if (error) throw error;
 
       const settingsData = data.reduce((acc, item) => {
-        // Handle different data types properly
         let value = item.content_value;
-        
-        // If content_value is already parsed or a primitive type, use it directly
-        if (typeof value === 'boolean' || typeof value === 'number') {
-          acc[item.content_key] = value;
-        } else if (typeof value === 'string') {
-          // Try to parse as JSON if it's a string, otherwise use as-is
-          try {
-            acc[item.content_key] = JSON.parse(value);
-          } catch {
-            acc[item.content_key] = value;
-          }
-        } else {
-          // For objects or arrays, use directly
+        try {
+          acc[item.content_key] = typeof value === 'string' ? JSON.parse(value) : value;
+        } catch {
           acc[item.content_key] = value;
         }
-        
         return acc;
       }, {} as any);
 
       setSettings(prev => ({
         ...prev,
-        ...settingsData
+        ...settingsData,
+        theme_settings: settingsData.theme_settings || defaultThemeSettings
       }));
     } catch (error) {
       console.error('Error fetching settings:', error);
@@ -108,6 +105,27 @@ const SettingsEditor = () => {
     }));
   };
 
+  const updateThemeSetting = (key: keyof ThemeSettings, value: any) => {
+    setSettings(prev => ({
+      ...prev,
+      theme_settings: {
+        ...prev.theme_settings,
+        [key]: value
+      }
+    }));
+  };
+
+  const handleThemeCycleChange = (theme: string) => {
+    const currentThemes = settings.theme_settings.cycle_themes;
+    let newThemes;
+    if (currentThemes.includes(theme)) {
+      newThemes = currentThemes.filter(t => t !== theme);
+    } else {
+      newThemes = [...currentThemes, theme];
+    }
+    updateThemeSetting('cycle_themes', newThemes);
+  };
+
   const getVisibleSectionsCount = () => {
     let count = 2; // Hero and About are always visible
     if (settings.show_education) count++;
@@ -116,6 +134,14 @@ const SettingsEditor = () => {
     count += 3; // Skills, Projects, Contact are always visible
     return count;
   };
+
+  const availableThemes = ['dark', 'blue', 'purple', 'green', 'sunset'];
+  const availableIntervals = [
+    { label: '10 seconds', value: 10000 },
+    { label: '30 seconds', value: 30000 },
+    { label: '1 minute', value: 60000 },
+    { label: '5 minutes', value: 300000 },
+  ];
 
   if (loading) {
     return (
@@ -130,6 +156,70 @@ const SettingsEditor = () => {
       <div className="text-center">
         <h1 className="text-4xl font-bold text-white mb-4">Settings</h1>
         <p className="text-gray-300">Configure your website preferences</p>
+      </div>
+
+      {/* Theme Customization */}
+      <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
+        <h2 className="text-2xl font-semibold text-white mb-6">Theme Customization</h2>
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <label className="text-white font-medium">Auto Theme Background Switching</label>
+              <p className="text-gray-400 text-sm">Automatically cycle through selected themes.</p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={settings.theme_settings.auto_cycle_enabled}
+                onChange={(e) => updateThemeSetting('auto_cycle_enabled', e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
+            </label>
+          </div>
+
+          {!settings.theme_settings.auto_cycle_enabled ? (
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Static Theme</label>
+              <select
+                value={settings.theme_settings.static_theme}
+                onChange={(e) => updateThemeSetting('static_theme', e.target.value)}
+                className="w-full capitalize px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors"
+              >
+                {availableThemes.map(theme => <option key={theme} value={theme}>{theme}</option>)}
+              </select>
+            </div>
+          ) : (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Theme Cycle Interval</label>
+                <select
+                  value={settings.theme_settings.cycle_interval}
+                  onChange={(e) => updateThemeSetting('cycle_interval', Number(e.target.value))}
+                  className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors"
+                >
+                  {availableIntervals.map(interval => <option key={interval.value} value={interval.value}>{interval.label}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Themes to Cycle</label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+                  {availableThemes.map(theme => (
+                    <label key={theme} className="flex items-center space-x-2 cursor-pointer capitalize bg-white/5 border border-white/20 rounded-lg p-3 text-white hover:bg-white/10">
+                      <input
+                        type="checkbox"
+                        checked={settings.theme_settings.cycle_themes.includes(theme)}
+                        onChange={() => handleThemeCycleChange(theme)}
+                        className="form-checkbox h-5 w-5 rounded text-cyan-500 bg-gray-700 border-gray-600 focus:ring-cyan-600"
+                      />
+                      <span>{theme}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
