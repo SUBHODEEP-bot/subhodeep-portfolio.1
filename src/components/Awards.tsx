@@ -1,14 +1,21 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Award as AwardIcon } from 'lucide-react';
+import ImageModal from './ImageModal';
 import type { Database } from '@/integrations/supabase/types';
 
 type Award = Database['public']['Tables']['awards']['Row'];
 
 const Awards = () => {
+  const [selectedImage, setSelectedImage] = useState<{
+    url: string;
+    alt: string;
+    title: string;
+  } | null>(null);
+
   const { data: awards, isLoading, error } = useQuery<Award[]>({
     queryKey: ['awards'],
     queryFn: async () => {
@@ -21,6 +28,18 @@ const Awards = () => {
       return data;
     },
   });
+
+  const handleImageClick = (award: Award) => {
+    setSelectedImage({
+      url: award.image_url,
+      alt: award.title,
+      title: award.title,
+    });
+  };
+
+  const closeModal = () => {
+    setSelectedImage(null);
+  };
 
   if (isLoading) {
     return (
@@ -57,7 +76,13 @@ const Awards = () => {
           {awards.map((award) => (
             <Card key={award.id} className="bg-black/30 backdrop-blur-sm border border-white/10 text-white transform hover:scale-105 transition-transform duration-300">
               <CardHeader>
-                <img src={award.image_url} alt={award.title} className="w-full h-48 object-cover rounded-t-lg" />
+                <img 
+                  src={award.image_url} 
+                  alt={award.title} 
+                  className="w-full h-48 object-cover rounded-t-lg cursor-pointer hover:opacity-90 transition-opacity duration-200" 
+                  onClick={() => handleImageClick(award)}
+                  title="Click to view full size"
+                />
               </CardHeader>
               <CardContent className="p-6">
                 <CardTitle className="text-xl font-bold text-cyan-400">{award.title}</CardTitle>
@@ -70,6 +95,14 @@ const Awards = () => {
           ))}
         </div>
       </div>
+
+      <ImageModal
+        isOpen={!!selectedImage}
+        onClose={closeModal}
+        imageUrl={selectedImage?.url || ''}
+        imageAlt={selectedImage?.alt || ''}
+        title={selectedImage?.title}
+      />
     </div>
   );
 };
