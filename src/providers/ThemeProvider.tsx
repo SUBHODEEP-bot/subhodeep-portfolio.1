@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 type ThemeSettings = {
@@ -21,12 +21,13 @@ const applyTheme = (theme: string) => {
 
   if (theme === 'dark') {
     root.classList.add('dark');
-  } else if (theme !== 'light') {
+  } else if (theme && theme !== 'light') {
     root.classList.add(`theme-${theme}`);
   }
 };
 
 export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
+  const queryClient = useQueryClient();
   const { data: settings, isLoading } = useQuery({
     queryKey: ['theme_settings'],
     queryFn: async () => {
@@ -72,6 +73,28 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
       if (intervalId) clearInterval(intervalId);
     };
   }, [settings, isLoading]);
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('website_content_theme_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'website_content',
+          filter: 'section=eq.theme_settings',
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['theme_settings'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 
   return (
     <ThemeContext.Provider value={settings || null}>
