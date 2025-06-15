@@ -14,7 +14,8 @@ import {
   Code,
   LogOut,
   Crown,
-  Award
+  Award,
+  Palette
 } from 'lucide-react';
 
 interface AdminNavProps {
@@ -38,6 +39,7 @@ const AdminNav = ({ activeSection, setActiveSection, onLogout }: AdminNavProps) 
     { id: 'blog', label: 'Blog', icon: FileText, color: 'from-emerald-500 to-emerald-600' },
     { id: 'contact', label: 'Contact', icon: Mail, color: 'from-red-500 to-red-600' },
     { id: 'settings', label: 'Settings', icon: Settings, color: 'from-gray-500 to-gray-600' },
+    { id: 'theme', label: 'Theme Controller', icon: Palette, color: 'from-teal-500 to-cyan-600' },
   ];
 
   const handleLogout = () => {

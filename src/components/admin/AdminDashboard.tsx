@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import AdminNav from './AdminNav';
 import DashboardOverview from './sections/DashboardOverview';
@@ -13,6 +14,7 @@ import SettingsEditor from './sections/SettingsEditor';
 import SocialLinksEditor from './sections/SocialLinksEditor'; // Import the new editor
 import AvatarUploader from './sections/AvatarUploader';
 import AwardsEditor from './sections/AwardsEditor';
+import ThemeController from './sections/ThemeController';
 
 interface AdminDashboardProps {
   onLogout?: () => void;
@@ -45,6 +47,8 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
         return <ContactManager />;
       case 'settings':
         return <SettingsEditor />;
+      case 'theme':
+        return <ThemeController />;
       case 'social_links': // Add new case
         return <SocialLinksEditor />;
       default:
