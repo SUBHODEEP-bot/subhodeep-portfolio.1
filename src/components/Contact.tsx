@@ -1,42 +1,23 @@
+
 import React, { useState, useEffect } from 'react';
-import { Mail, MapPin, Phone, Send, Download, Linkedin, Github, Youtube, Twitter, Instagram, Facebook, Gitlab, Dribbble, Codepen } from 'lucide-react';
+import { Mail, MapPin, Phone, Send, Download, Linkedin, Github, Youtube, Twitter } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
-interface SocialLink {
-  platform: string;
-  url: string;
-  icon: string;
-}
-
-const iconComponents: { [key: string]: React.ElementType } = {
-  Linkedin,
-  Github,
-  Youtube,
-  Twitter,
-  Instagram,
-  Facebook,
-  Gitlab,
-  Dribbble,
-  Codepen
-};
-
 const Contact = () => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
 
   const [contactData, setContactData] = useState({
     email: 'subhodeep.pal@example.com',
     phone: '+91 9876543210',
     location: 'Kolkata, West Bengal, India',
     resume_url: '',
-    socials: {
-      linkedin: '#',
-      github: '#',
-      youtube: '#',
-    }
+    linkedin_url: '',
+    youtube_url: '',
+    github_url: '',
+    twitter_url: '',
   });
 
   const [formData, setFormData] = useState({
@@ -46,24 +27,17 @@ const Contact = () => {
   });
 
   useEffect(() => {
-    const fetchAllData = async () => {
+    const fetchContactData = async () => {
       try {
-        const [contactRes, socialRes] = await Promise.all([
-          supabase
-            .from('website_content')
-            .select('content_key, content_value')
-            .eq('section', 'contact'),
-          supabase
-            .from('website_content')
-            .select('content_value')
-            .eq('section', 'social_links')
-            .eq('content_key', 'links')
-            .maybeSingle()
-        ]);
+        const { data, error } = await supabase
+          .from('website_content')
+          .select('content_key, content_value')
+          .eq('section', 'contact');
 
-        if (contactRes.error) throw contactRes.error;
-        if (contactRes.data) {
-          const contactContent = contactRes.data.reduce((acc, item) => {
+        if (error) throw error;
+
+        if (data) {
+          const contactContent = data.reduce((acc, item) => {
             if (item.content_key !== 'socials') {
               let value = item.content_value;
               if (typeof value === 'string') {
@@ -81,22 +55,13 @@ const Contact = () => {
             }));
           }
         }
-        
-        if (socialRes.error) throw socialRes.error;
-        if (socialRes.data && socialRes.data.content_value) {
-          let parsedLinks = socialRes.data.content_value;
-          if (typeof parsedLinks === 'string') {
-            try { parsedLinks = JSON.parse(parsedLinks); } catch (e) { parsedLinks = []; }
-          }
-          setSocialLinks(Array.isArray(parsedLinks) ? (parsedLinks as unknown as SocialLink[]) : []);
-        }
 
       } catch (error) {
         console.error('Error fetching contact page data:', error);
       }
     };
 
-    fetchAllData();
+    fetchContactData();
   }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -129,6 +94,33 @@ const Contact = () => {
       setIsSubmitting(false);
     }
   };
+
+  const socialLinks = [
+    {
+      name: 'LinkedIn',
+      url: contactData.linkedin_url,
+      icon: Linkedin,
+      color: 'hover:text-blue-600'
+    },
+    {
+      name: 'GitHub',
+      url: contactData.github_url,
+      icon: Github,
+      color: 'hover:text-gray-400'
+    },
+    {
+      name: 'YouTube',
+      url: contactData.youtube_url,
+      icon: Youtube,
+      color: 'hover:text-red-600'
+    },
+    {
+      name: 'Twitter',
+      url: contactData.twitter_url,
+      icon: Twitter,
+      color: 'hover:text-blue-400'
+    }
+  ];
 
   return (
     <TooltipProvider>
@@ -187,93 +179,38 @@ const Contact = () => {
               <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
                 <h3 className="text-xl font-semibold text-white mb-6">Connect with Me</h3>
                 <div className="flex flex-wrap gap-4">
-                  {socialLinks.length > 0 ? (
-                    socialLinks.map((social) => {
-                      const IconComponent = iconComponents[social.icon];
-                      if (!IconComponent) return null;
+                  {socialLinks.map((social) => {
+                    const IconComponent = social.icon;
+                    const hasUrl = social.url && social.url.trim() !== '';
 
-                      return (
-                        <Tooltip key={social.platform}>
-                          <TooltipTrigger asChild>
+                    return (
+                      <Tooltip key={social.name}>
+                        <TooltipTrigger asChild>
+                          {hasUrl ? (
                             <a
-                              href={social.url || '#'}
+                              href={social.url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center text-white transition-all duration-300 hover:bg-white/20 transform hover:scale-110"
-                              aria-label={social.platform}
+                              className={`w-12 h-12 bg-white/10 rounded-full flex items-center justify-center text-white transition-all duration-300 hover:bg-white/20 transform hover:scale-110 ${social.color}`}
+                              aria-label={social.name}
                             >
                               <IconComponent size={20} />
                             </a>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Visit my {social.platform}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      );
-                    })
-                  ) : (
-                    <div className="flex flex-wrap gap-4">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <a
-                            href="#"
-                            className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center text-white transition-all duration-300 hover:bg-white/20 transform hover:scale-110 opacity-50 cursor-not-allowed"
-                            aria-label="LinkedIn"
-                          >
-                            <Linkedin size={20} />
-                          </a>
+                          ) : (
+                            <div
+                              className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center text-white/50 transition-all duration-300 cursor-not-allowed"
+                              aria-label={social.name}
+                            >
+                              <IconComponent size={20} />
+                            </div>
+                          )}
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>LinkedIn profile (Configure in Admin)</p>
+                          <p>{hasUrl ? `Visit my ${social.name}` : `${social.name} link not configured`}</p>
                         </TooltipContent>
                       </Tooltip>
-                      
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <a
-                            href="#"
-                            className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center text-white transition-all duration-300 hover:bg-white/20 transform hover:scale-110 opacity-50 cursor-not-allowed"
-                            aria-label="GitHub"
-                          >
-                            <Github size={20} />
-                          </a>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>GitHub profile (Configure in Admin)</p>
-                        </TooltipContent>
-                      </Tooltip>
-                      
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <a
-                            href="#"
-                            className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center text-white transition-all duration-300 hover:bg-white/20 transform hover:scale-110 opacity-50 cursor-not-allowed"
-                            aria-label="YouTube"
-                          >
-                            <Youtube size={20} />
-                          </a>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>YouTube channel (Configure in Admin)</p>
-                        </TooltipContent>
-                      </Tooltip>
-                      
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <a
-                            href="#"
-                            className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center text-white transition-all duration-300 hover:bg-white/20 transform hover:scale-110 opacity-50 cursor-not-allowed"
-                            aria-label="Twitter"
-                          >
-                            <Twitter size={20} />
-                          </a>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Twitter profile (Configure in Admin)</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
-                  )}
+                    );
+                  })}
                 </div>
               </div>
 

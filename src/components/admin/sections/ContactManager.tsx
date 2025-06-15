@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Save, RefreshCw } from 'lucide-react';
@@ -14,6 +15,10 @@ const ContactManager = () => {
     phone: '',
     location: '',
     resume_url: '',
+    linkedin_url: '',
+    youtube_url: '',
+    github_url: '',
+    twitter_url: '',
   });
 
   useEffect(() => {
@@ -50,6 +55,10 @@ const ContactManager = () => {
         phone: contactContent.phone || '',
         location: contactContent.location || '',
         resume_url: contactContent.resume_url || '',
+        linkedin_url: contactContent.linkedin_url || '',
+        youtube_url: contactContent.youtube_url || '',
+        github_url: contactContent.github_url || '',
+        twitter_url: contactContent.twitter_url || '',
       });
     } catch (error) {
       console.error('Error fetching contact data:', error);
@@ -139,6 +148,27 @@ const ContactManager = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">Resume URL</label>
                 <input type="text" value={contactData.resume_url} onChange={(e) => setContactData({ ...contactData, resume_url: e.target.value })} className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-gray-400 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors" placeholder="URL to your resume PDF" />
+              </div>
+
+              {/* Social Media Links */}
+              <h3 className="text-xl font-semibold text-white border-b border-slate-700 pb-2 pt-4">Social Media Links</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">LinkedIn URL</label>
+                  <input type="url" value={contactData.linkedin_url} onChange={(e) => setContactData({ ...contactData, linkedin_url: e.target.value })} className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-gray-400 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors" placeholder="https://linkedin.com/in/yourprofile" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">GitHub URL</label>
+                  <input type="url" value={contactData.github_url} onChange={(e) => setContactData({ ...contactData, github_url: e.target.value })} className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-gray-400 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors" placeholder="https://github.com/yourusername" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">YouTube URL</label>
+                  <input type="url" value={contactData.youtube_url} onChange={(e) => setContactData({ ...contactData, youtube_url: e.target.value })} className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-gray-400 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors" placeholder="https://youtube.com/@yourchannel" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Twitter URL</label>
+                  <input type="url" value={contactData.twitter_url} onChange={(e) => setContactData({ ...contactData, twitter_url: e.target.value })} className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-gray-400 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors" placeholder="https://twitter.com/yourusername" />
+                </div>
               </div>
               
               <button onClick={saveContactData} disabled={saving} className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold rounded-lg hover:from-cyan-600 hover:to-blue-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
