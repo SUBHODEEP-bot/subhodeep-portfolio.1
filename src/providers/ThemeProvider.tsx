@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -56,13 +55,22 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
 
     let intervalId: number | undefined;
 
+    console.log('THEME PROVIDER: New settings received, applying theme.', settings);
+
     if (settings.enabled && settings.selected_themes && settings.selected_themes.length > 0) {
-      let currentThemeIndex = 0;
+      const initialTheme = settings.selected_themes.includes(settings.active_theme)
+        ? settings.active_theme
+        : settings.selected_themes[0];
+
+      let currentThemeIndex = settings.selected_themes.indexOf(initialTheme);
+      if (currentThemeIndex === -1) currentThemeIndex = 0;
+
       applyTheme(settings.selected_themes[currentThemeIndex]);
 
       intervalId = window.setInterval(() => {
         currentThemeIndex = (currentThemeIndex + 1) % settings.selected_themes.length;
-        applyTheme(settings.selected_themes[currentThemeIndex]);
+        const newTheme = settings.selected_themes[currentThemeIndex];
+        applyTheme(newTheme);
       }, (settings.interval || 30) * 1000);
 
     } else {
@@ -85,11 +93,22 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
           table: 'website_content',
           filter: 'section=eq.theme_settings',
         },
-        () => {
+        (payload) => {
+          console.log('THEME PROVIDER: Realtime update received!', payload);
           queryClient.invalidateQueries({ queryKey: ['theme_settings'] });
         }
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('THEME PROVIDER: Successfully subscribed to realtime theme changes!');
+        }
+        if (status === 'CHANNEL_ERROR') {
+          console.error('THEME PROVIDER: Realtime channel error.', err);
+        }
+        if (status === 'TIMED_OUT') {
+          console.warn('THEME PROVIDER: Realtime connection timed out.');
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);
