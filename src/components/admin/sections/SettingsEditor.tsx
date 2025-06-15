@@ -135,7 +135,7 @@ const SettingsEditor = () => {
     return count;
   };
 
-  const availableThemes: Theme[] = ['dark', 'blue', 'purple', 'green', 'sunset'];
+  const availableThemes: Theme[] = ['dark', 'blue', 'purple', 'green', 'sunset', 'onyx', 'charcoal', 'midnight', 'graphite', 'ebony', 'noir', 'obsidian', 'sable', 'jet', 'gunmetal'];
   const availableIntervals = [
     { label: '10 seconds', value: 10000 },
     { label: '30 seconds', value: 30000 },

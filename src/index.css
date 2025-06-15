@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -43,6 +42,16 @@
     --gradient-purple: linear-gradient(to bottom right, #1E1B4B, #4C1D95, #5B21B6);
     --gradient-green: linear-gradient(to bottom right, #064E3B, #047857, #059669);
     --gradient-sunset: linear-gradient(to bottom right, #7F1D1D, #B91C1C, #F97316);
+    --gradient-onyx: linear-gradient(to bottom right, #0f0f0f, #2d3436, #0f0f0f);
+    --gradient-charcoal: linear-gradient(to bottom right, #36454F, #2C3E50, #36454F);
+    --gradient-midnight: linear-gradient(to bottom right, #000033, #000066, #191970);
+    --gradient-graphite: linear-gradient(to bottom right, #484848, #282828, #484848);
+    --gradient-ebony: linear-gradient(to bottom right, #555d50, #3c443c, #555d50);
+    --gradient-noir: linear-gradient(to bottom right, #252525, #000000, #252525);
+    --gradient-obsidian: linear-gradient(to bottom right, #0B1D2A, #122B3E, #0B1D2A);
+    --gradient-sable: linear-gradient(to bottom right, #40322c, #261e1a, #40322c);
+    --gradient-jet: linear-gradient(to bottom right, #343434, #1b1b1b, #343434);
+    --gradient-gunmetal: linear-gradient(to bottom right, #2a3439, #2c3539, #2a3439);
 
     --bg-gradient: var(--gradient-dark); /* Default gradient */
 
@@ -119,4 +128,14 @@
   body.theme-purple { --bg-gradient: var(--gradient-purple); }
   body.theme-green { --bg-gradient: var(--gradient-green); }
   body.theme-sunset { --bg-gradient: var(--gradient-sunset); }
+  body.theme-onyx { --bg-gradient: var(--gradient-onyx); }
+  body.theme-charcoal { --bg-gradient: var(--gradient-charcoal); }
+  body.theme-midnight { --bg-gradient: var(--gradient-midnight); }
+  body.theme-graphite { --bg-gradient: var(--gradient-graphite); }
+  body.theme-ebony { --bg-gradient: var(--gradient-ebony); }
+  body.theme-noir { --bg-gradient: var(--gradient-noir); }
+  body.theme-obsidian { --bg-gradient: var(--gradient-obsidian); }
+  body.theme-sable { --bg-gradient: var(--gradient-sable); }
+  body.theme-jet { --bg-gradient: var(--gradient-jet); }
+  body.theme-gunmetal { --bg-gradient: var(--gradient-gunmetal); }
 }

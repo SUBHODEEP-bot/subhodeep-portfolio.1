@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-export type Theme = 'dark' | 'blue' | 'purple' | 'green' | 'sunset';
+export type Theme = 'dark' | 'blue' | 'purple' | 'green' | 'sunset' | 'onyx' | 'charcoal' | 'midnight' | 'graphite' | 'ebony' | 'noir' | 'obsidian' | 'sable' | 'jet' | 'gunmetal';
 
 export interface ThemeSettings {
   static_theme: Theme;
@@ -23,15 +23,17 @@ const defaultSettings: ThemeSettings = {
     cycle_themes: ['dark', 'blue'],
 };
 
+const allThemes: Theme[] = ['dark', 'blue', 'purple', 'green', 'sunset', 'onyx', 'charcoal', 'midnight', 'graphite', 'ebony', 'noir', 'obsidian', 'sable', 'jet', 'gunmetal'];
+
 function isThemeSettings(settings: any): settings is ThemeSettings {
   return (
     settings &&
     typeof settings.static_theme === 'string' &&
-    ['dark', 'blue', 'purple', 'green', 'sunset'].includes(settings.static_theme) &&
+    allThemes.includes(settings.static_theme as Theme) &&
     typeof settings.auto_cycle_enabled === 'boolean' &&
     typeof settings.cycle_interval === 'number' &&
     Array.isArray(settings.cycle_themes) &&
-    settings.cycle_themes.every((t: any) => typeof t === 'string' && ['dark', 'blue', 'purple', 'green', 'sunset'].includes(t))
+    settings.cycle_themes.every((t: any) => typeof t === 'string' && allThemes.includes(t as Theme))
   );
 }
 
@@ -43,6 +45,16 @@ export const themes: Record<Theme, string> = {
   purple: 'theme-purple',
   green: 'theme-green',
   sunset: 'theme-sunset',
+  onyx: 'theme-onyx',
+  charcoal: 'theme-charcoal',
+  midnight: 'theme-midnight',
+  graphite: 'theme-graphite',
+  ebony: 'theme-ebony',
+  noir: 'theme-noir',
+  obsidian: 'theme-obsidian',
+  sable: 'theme-sable',
+  jet: 'theme-jet',
+  gunmetal: 'theme-gunmetal',
 };
 
 export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
