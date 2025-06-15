@@ -15,7 +15,7 @@ export const useThemeSettings = () => useContext(ThemeContext);
 
 const applyTheme = (theme: string) => {
   const root = document.documentElement;
-  const themes = ['dark', 'theme-light-blue', 'theme-purple', 'theme-sunset', 'theme-green'];
+  const themes = ['dark', 'midnight', 'forest', 'crimson', 'ocean', 'graphite', 'rose', 'solarized-dark', 'dracula', 'nord-dark', 'obsidian'].map(t => t === 'dark' ? 'dark' : `theme-${t}`);
   root.classList.remove(...themes);
 
   if (theme === 'dark') {
@@ -41,7 +41,7 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
       const defaults = {
         enabled: false,
         interval: 30,
-        selected_themes: ['dark'],
+        selected_themes: ['dark', 'midnight'],
         active_theme: 'dark',
       };
       

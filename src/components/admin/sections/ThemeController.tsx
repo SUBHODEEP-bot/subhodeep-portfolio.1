@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,12 +9,17 @@ import { Button } from '@/components/ui/button';
 const THEME_SETTINGS_KEY = 'theme_settings';
 
 const availableThemes = [
-  { id: 'light', name: 'Light' },
   { id: 'dark', name: 'Dark' },
-  { id: 'light-blue', name: 'Light Blue' },
-  { id: 'purple', name: 'Purple' },
-  { id: 'sunset', name: 'Sunset' },
-  { id: 'green', name: 'Green' },
+  { id: 'midnight', name: 'Midnight' },
+  { id: 'forest', name: 'Forest' },
+  { id: 'crimson', name: 'Crimson' },
+  { id: 'ocean', name: 'Ocean' },
+  { id: 'graphite', name: 'Graphite' },
+  { id: 'rose', name: 'Rose' },
+  { id: 'solarized-dark', name: 'Solarized Dark' },
+  { id: 'dracula', name: 'Dracula' },
+  { id: 'nord-dark', name: 'Nord Dark' },
+  { id: 'obsidian', name: 'Obsidian' },
 ];
 
 const availableIntervals = [
@@ -39,7 +43,7 @@ const ThemeController = () => {
   const [settings, setSettings] = useState<ThemeSettings>({
     enabled: false,
     interval: 30,
-    selected_themes: ['light', 'dark'],
+    selected_themes: ['dark', 'midnight'],
     active_theme: 'dark',
   });
   
@@ -62,7 +66,7 @@ const ThemeController = () => {
       setSettings({
         enabled: initialSettings.enabled ?? false,
         interval: initialSettings.interval ?? 30,
-        selected_themes: initialSettings.selected_themes ?? ['light', 'dark'],
+        selected_themes: initialSettings.selected_themes ?? ['dark', 'midnight'],
         active_theme: initialSettings.active_theme ?? 'dark',
       });
     }
@@ -107,14 +111,13 @@ const ThemeController = () => {
   const applyPreviewTheme = (theme: string) => {
     const root = document.documentElement;
     availableThemes.forEach(t => {
-        if (t.id === 'light') return;
         if(t.id === 'dark') root.classList.remove('dark');
         else root.classList.remove(`theme-${t.id}`);
     });
     
     if (theme === 'dark') {
         root.classList.add('dark');
-    } else if (theme !== 'light') {
+    } else {
         root.classList.add(`theme-${theme}`);
     }
   };
@@ -211,4 +214,3 @@ const ThemeController = () => {
 };
 
 export default ThemeController;
-
