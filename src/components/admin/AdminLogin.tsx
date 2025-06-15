@@ -2,76 +2,42 @@
 import React, { useState } from 'react';
 import { Lock, User, Shield, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 
 interface AdminLoginProps {
   onLogin: () => void;
 }
 
 const AdminLogin = ({ onLogin }: AdminLoginProps) => {
-  const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    try {
-      // Sign in with Supabase
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
-        toast({
-          title: "Login Failed",
-          description: error.message,
-          variant: "destructive"
-        });
-        setLoading(false);
-        return;
-      }
-
-      if (data.user) {
-        // Check if user has admin role
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', data.user.id)
-          .single();
-
-        if (profileError || profile?.role !== 'admin') {
-          await supabase.auth.signOut();
-          toast({
-            title: "Access Denied 🚫",
-            description: "Admin access required. Only authorized administrators can access this panel.",
-            variant: "destructive"
-          });
-          setLoading(false);
-          return;
-        }
-
+    // This is a simplified, less secure login method as requested.
+    // It does not authenticate with the database, which may cause
+    // issues with data permissions (Row Level Security).
+    setTimeout(() => {
+      if (name === 'SUBHODEEP PAL' && password === 'Pal@2005') {
         localStorage.setItem('admin_authenticated', 'true');
         onLogin();
         toast({
-          title: "Welcome back! 🎉",
+          title: "Welcome back, Subhodeep! 🎉",
           description: "Successfully logged into your admin panel"
         });
+      } else {
+        toast({
+          title: "Access Denied 🚫",
+          description: "Invalid credentials. Only Subhodeep Pal can access this panel.",
+          variant: "destructive"
+        });
       }
-    } catch (error) {
-      console.error('Login error:', error);
-      toast({
-        title: "Login Error",
-        description: "An unexpected error occurred. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
       setLoading(false);
-    }
+    }, 1000);
   };
 
   return (
@@ -94,23 +60,23 @@ const AdminLogin = ({ onLogin }: AdminLoginProps) => {
         <form onSubmit={handleLogin} className="space-y-6">
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Email Address
+              Admin Name
             </label>
             <div className="relative">
               <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 transition-all duration-300 backdrop-blur-sm"
-                placeholder="Enter your email"
+                placeholder="Enter your name"
                 required
               />
             </div>
           </div>
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Password
+              Admin Password
             </label>
             <div className="relative">
               <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
@@ -162,7 +128,7 @@ const AdminLogin = ({ onLogin }: AdminLoginProps) => {
 
         <div className="mt-6 text-center">
           <p className="text-xs text-gray-500">
-            Secured access for authorized administrators only
+            Secured access for Subhodeep Pal only
           </p>
         </div>
       </div>
