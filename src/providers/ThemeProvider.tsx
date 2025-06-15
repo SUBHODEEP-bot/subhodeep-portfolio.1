@@ -1,5 +1,4 @@
-
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -34,9 +33,8 @@ const applyTheme = (theme: string) => {
 
 export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   const queryClient = useQueryClient();
-  const [currentTheme, setCurrentTheme] = useState('dark');
 
-  const { data: settings, isLoading } = useQuery({
+  const { data: settings, isLoading, isError } = useQuery({
     queryKey: ['theme_settings'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -47,7 +45,7 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
         .single();
       if (error && error.code !== 'PGRST116') throw error;
       
-      const defaults = {
+      const defaults: ThemeSettings = {
         enabled: false,
         interval: 30,
         selected_themes: ['dark', 'midnight'],
@@ -59,51 +57,65 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
+  // Effect to apply the theme whenever the active_theme from settings changes.
   useEffect(() => {
-    applyTheme(currentTheme);
-  }, [currentTheme]);
+    if (settings) {
+      console.log(`THEME PROVIDER: Applying theme from settings: ${settings.active_theme}`);
+      applyTheme(settings.active_theme);
+    } else {
+      console.log("THEME PROVIDER: No settings found, applying default 'dark' theme.");
+      applyTheme('dark');
+    }
+  }, [settings?.active_theme]);
 
+  // Effect to handle the auto-cycling logic.
   useEffect(() => {
-    if (isLoading || !settings) {
+    if (isLoading || !settings || isError) {
       return;
     }
 
     let intervalId: number | undefined;
 
-    console.log('THEME PROVIDER: Settings updated.', settings);
-
     if (settings.enabled && settings.selected_themes && settings.selected_themes.length > 0) {
       console.log(`THEME PROVIDER: Auto-cycling is ON. Interval: ${settings.interval}s. Themes:`, settings.selected_themes);
       
       const themes = settings.selected_themes;
-      let currentIndex = themes.indexOf(settings.active_theme);
-      if (currentIndex === -1) {
-        currentIndex = 0;
-      }
-      
-      if (currentTheme !== themes[currentIndex]) {
-        setCurrentTheme(themes[currentIndex]);
-      }
 
-      intervalId = window.setInterval(() => {
-        currentIndex = (currentIndex + 1) % themes.length;
-        const newTheme = themes[currentIndex];
-        setCurrentTheme(newTheme);
+      intervalId = window.setInterval(async () => {
+        const currentSettings = queryClient.getQueryData<ThemeSettings>(['theme_settings']);
+        if (!currentSettings || !currentSettings.enabled) return;
+
+        const currentThemeIndex = themes.indexOf(currentSettings.active_theme);
+        const nextThemeIndex = (currentThemeIndex + 1) % themes.length;
+        const newTheme = themes[nextThemeIndex];
+
+        console.log(`THEME PROVIDER: Cycling theme from ${currentSettings.active_theme} to ${newTheme}`);
+        
+        const { error } = await supabase.from('website_content').upsert(
+          {
+            section: 'theme_settings',
+            content_key: 'config',
+            content_value: { ...currentSettings, active_theme: newTheme },
+          },
+          { onConflict: 'section,content_key' }
+        );
+
+        if (error) {
+          console.error("THEME PROVIDER: Error updating theme in DB during auto-cycle", error);
+        }
       }, (settings.interval || 30) * 1000);
 
     } else {
-      console.log('THEME PROVIDER: Auto-cycling is OFF. Applying static theme:', settings.active_theme);
-      if (currentTheme !== settings.active_theme) {
-        setCurrentTheme(settings.active_theme || 'dark');
-      }
+      console.log('THEME PROVIDER: Auto-cycling is OFF.');
     }
 
     return () => {
       if (intervalId) {
+        console.log("THEME PROVIDER: Clearing auto-cycle interval.");
         clearInterval(intervalId);
       }
     };
-  }, [settings, isLoading]);
+  }, [settings, isLoading, isError, queryClient]);
 
   useEffect(() => {
     const channel = supabase
