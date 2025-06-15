@@ -1,7 +1,8 @@
 
 import React, { useEffect, useState } from 'react';
-import { Play } from 'lucide-react';
+import { Play, Image as ImageIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import ImageModal from './ImageModal';
 
 interface GalleryItem {
   id: string;
@@ -21,15 +22,20 @@ const Gallery = () => {
   useEffect(() => {
     const fetchGallery = async () => {
       try {
+        console.log('Fetching gallery items...');
         const { data, error } = await supabase
           .from('gallery')
           .select('*')
           .order('featured', { ascending: false })
           .order('created_at', { ascending: false });
 
-        if (error) throw error;
+        if (error) {
+          console.error('Gallery fetch error:', error);
+          throw error;
+        }
         
-        // Type assertion to ensure media_type is properly typed
+        console.log('Gallery items fetched:', data);
+        
         const typedData = (data || []).map(item => ({
           ...item,
           media_type: item.media_type as 'image' | 'video'
@@ -46,13 +52,26 @@ const Gallery = () => {
     fetchGallery();
   }, []);
 
+  const handleImageClick = (item: GalleryItem) => {
+    setSelectedItem(item);
+  };
+
+  const closeModal = () => {
+    setSelectedItem(null);
+  };
+
   if (loading) {
     return (
       <div className="relative py-20 px-4">
         <div className="max-w-6xl mx-auto text-center">
           <div className="animate-pulse">
-            <div className="h-8 bg-white/20 rounded mb-4"></div>
-            <div className="h-4 bg-white/10 rounded"></div>
+            <div className="h-8 bg-white/20 rounded mb-4 mx-auto w-48"></div>
+            <div className="h-4 bg-white/10 rounded mx-auto w-96"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-16">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="bg-white/10 rounded-2xl h-80 animate-pulse"></div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -60,7 +79,21 @@ const Gallery = () => {
   }
 
   if (gallery.length === 0) {
-    return null;
+    return (
+      <div className="relative py-20 px-4">
+        <div className="max-w-6xl mx-auto text-center">
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+            Gallery
+          </h2>
+          <div className="w-24 h-1 bg-gradient-to-r from-cyan-400 to-purple-500 mx-auto mb-6"></div>
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-12 border border-white/20">
+            <ImageIcon className="mx-auto mb-4 text-gray-400" size={64} />
+            <p className="text-gray-300 text-lg">No gallery items available yet.</p>
+            <p className="text-gray-400 text-sm mt-2">Check back soon for updates!</p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -81,13 +114,18 @@ const Gallery = () => {
             <div
               key={item.id}
               className="group relative bg-white/10 backdrop-blur-md rounded-2xl overflow-hidden border border-white/20 hover:border-cyan-400/50 transition-all duration-300 cursor-pointer"
-              onClick={() => setSelectedItem(item)}
+              onClick={() => handleImageClick(item)}
             >
               <div className="relative aspect-square overflow-hidden">
                 <img
                   src={item.media_type === 'video' ? item.thumbnail_url : item.media_url}
                   alt={item.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  onError={(e) => {
+                    console.error('Image load error for:', item.title, item.media_url);
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                  }}
                 />
                 
                 {item.media_type === 'video' && (
@@ -117,42 +155,15 @@ const Gallery = () => {
           ))}
         </div>
 
-        {/* Modal */}
+        {/* Image/Video Modal */}
         {selectedItem && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
-            <div className="relative max-w-4xl w-full max-h-[90vh] bg-white/10 backdrop-blur-md rounded-2xl overflow-hidden border border-white/20">
-              <button
-                onClick={() => setSelectedItem(null)}
-                className="absolute top-4 right-4 z-10 w-10 h-10 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors"
-              >
-                ×
-              </button>
-
-              <div className="aspect-video">
-                {selectedItem.media_type === 'video' ? (
-                  <video
-                    src={selectedItem.media_url}
-                    controls
-                    className="w-full h-full object-cover"
-                    poster={selectedItem.thumbnail_url}
-                  />
-                ) : (
-                  <img
-                    src={selectedItem.media_url}
-                    alt={selectedItem.title}
-                    className="w-full h-full object-cover"
-                  />
-                )}
-              </div>
-
-              <div className="p-6">
-                <h3 className="text-2xl font-bold text-white mb-2">{selectedItem.title}</h3>
-                {selectedItem.description && (
-                  <p className="text-gray-300">{selectedItem.description}</p>
-                )}
-              </div>
-            </div>
-          </div>
+          <ImageModal
+            isOpen={!!selectedItem}
+            onClose={closeModal}
+            imageUrl={selectedItem.media_type === 'video' ? selectedItem.media_url : selectedItem.media_url}
+            imageAlt={selectedItem.title}
+            title={selectedItem.title}
+          />
         )}
       </div>
     </div>

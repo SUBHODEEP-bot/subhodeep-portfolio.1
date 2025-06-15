@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Save, RefreshCw, UploadCloud, Image as ImageIcon, Video as VideoIcon, Trash2, GripVertical, PlusCircle, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
+import { Save, RefreshCw, UploadCloud, Image as ImageIcon, Video as VideoIcon, Trash2, PlusCircle, CheckCircle, XCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,7 +17,7 @@ interface GalleryItem {
   thumbnail_url: string;
   featured: boolean;
   order: number;
-  file_name?: string; // Store original file name for reference
+  file_name?: string;
 }
 
 interface UploadProgress {
@@ -25,7 +25,7 @@ interface UploadProgress {
     progress: number;
     status: 'uploading' | 'success' | 'error' | 'generating_thumbnail';
     error?: string;
-    galleryItemId?: string; // ID of the created gallery item
+    galleryItemId?: string;
   };
 }
 
@@ -51,7 +51,7 @@ const GalleryEditor = () => {
       const typedData = (data || []).map(item => ({
         ...item,
         media_type: item.media_type as 'image' | 'video',
-        order: item.order ?? 0 // Ensure order is a number, default to 0 if missing
+        order: item.order ?? 0
       }));
       
       setGalleryItems(typedData);
@@ -74,7 +74,32 @@ const GalleryEditor = () => {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
       const newFiles = Array.from(event.target.files);
-      setFilesToUpload(prevFiles => [...prevFiles, ...newFiles.filter(nf => !prevFiles.some(pf => pf.name === nf.name && pf.size === nf.size))]);
+      const validFiles = newFiles.filter(file => {
+        const isValidType = file.type.startsWith('image/') || file.type.startsWith('video/');
+        const isValidSize = file.size <= 100 * 1024 * 1024; // 100MB
+        
+        if (!isValidType) {
+          toast({
+            title: "Invalid File Type",
+            description: `${file.name} is not a valid image or video file`,
+            variant: "destructive"
+          });
+          return false;
+        }
+        
+        if (!isValidSize) {
+          toast({
+            title: "File Too Large",
+            description: `${file.name} exceeds 100MB limit`,
+            variant: "destructive"
+          });
+          return false;
+        }
+        
+        return true;
+      });
+      
+      setFilesToUpload(prevFiles => [...prevFiles, ...validFiles.filter(nf => !prevFiles.some(pf => pf.name === nf.name && pf.size === nf.size))]);
     }
   };
 
@@ -83,7 +108,12 @@ const GalleryEditor = () => {
     event.stopPropagation();
     if (event.dataTransfer.files) {
       const newFiles = Array.from(event.dataTransfer.files);
-      setFilesToUpload(prevFiles => [...prevFiles, ...newFiles.filter(nf => !prevFiles.some(pf => pf.name === nf.name && pf.size === nf.size))]);
+      const validFiles = newFiles.filter(file => {
+        const isValidType = file.type.startsWith('image/') || file.type.startsWith('video/');
+        const isValidSize = file.size <= 100 * 1024 * 1024;
+        return isValidType && isValidSize;
+      });
+      setFilesToUpload(prevFiles => [...prevFiles, ...validFiles.filter(nf => !prevFiles.some(pf => pf.name === nf.name && pf.size === nf.size))]);
     }
   }, []);
 
@@ -101,13 +131,13 @@ const GalleryEditor = () => {
     });
   };
   
-  const generateVideoThumbnail = async (file: File): Promise<string> => {
+  const generateVideoThumbnail = async (file: File): Promise<Blob> => {
     return new Promise((resolve, reject) => {
       const video = document.createElement('video');
       video.preload = 'metadata';
       video.src = URL.createObjectURL(file);
       video.onloadedmetadata = () => {
-        video.currentTime = Math.min(1, video.duration / 2); // Capture frame at 1s or mid-point
+        video.currentTime = Math.min(1, video.duration / 2);
       };
       video.onseeked = () => {
         const canvas = document.createElement('canvas');
@@ -116,9 +146,15 @@ const GalleryEditor = () => {
         const ctx = canvas.getContext('2d');
         if (ctx) {
           ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-          resolve(canvas.toDataURL('image/jpeg'));
+          canvas.toBlob((blob) => {
+            if (blob) {
+              resolve(blob);
+            } else {
+              reject(new Error('Failed to generate thumbnail blob'));
+            }
+          }, 'image/jpeg', 0.8);
         } else {
-          reject(new Error('Failed to get canvas context for thumbnail.'));
+          reject(new Error('Failed to get canvas context for thumbnail'));
         }
         URL.revokeObjectURL(video.src);
       };
@@ -132,12 +168,19 @@ const GalleryEditor = () => {
   const handleFileUpload = async (file: File) => {
     const fileId = crypto.randomUUID();
     const fileExtension = file.name.split('.').pop();
-    const filePath = `media/${fileId}.${fileExtension}`; // Use media/ prefix and UUID for uniqueness
+    const filePath = `media/${fileId}.${fileExtension}`;
     const mediaType = file.type.startsWith('image/') ? 'image' : 'video';
 
-    setUploadProgress(prev => ({ ...prev, [file.name]: { progress: 0, status: 'uploading' } }));
+    console.log('Starting upload for:', file.name, 'Type:', mediaType);
+    
+    setUploadProgress(prev => ({ 
+      ...prev, 
+      [file.name]: { progress: 10, status: 'uploading' } 
+    }));
 
     try {
+      // Upload main file
+      console.log('Uploading to path:', filePath);
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('gallery')
         .upload(filePath, file, {
@@ -147,64 +190,81 @@ const GalleryEditor = () => {
         });
 
       if (uploadError) {
-        console.error('Supabase upload error:', uploadError); // Log detailed error
-        setUploadProgress(prev => ({ ...prev, [file.name]: { progress: 0, error: `Upload failed: ${uploadError.message}`, status: 'error' } }));
-        toast({
-          title: "Upload Failed",
-          description: `Failed to upload ${file.name}. Error: ${uploadError.message}`, // Display detailed error
-          variant: "destructive",
-        });
-        return;
+        console.error('Upload error:', uploadError);
+        throw new Error(`Upload failed: ${uploadError.message}`);
       }
+
+      console.log('Upload successful:', uploadData);
+      
+      setUploadProgress(prev => ({ 
+        ...prev, 
+        [file.name]: { ...prev[file.name], progress: 50 } 
+      }));
 
       const { data: publicUrlData } = supabase.storage.from('gallery').getPublicUrl(filePath);
       const media_url = publicUrlData.publicUrl;
+      
+      console.log('Media URL:', media_url);
 
       let thumbnail_url = media_url;
+      
+      // Generate thumbnail for videos
       if (mediaType === 'video') {
-        setUploadProgress(prev => ({ ...prev, [file.name]: { ...prev[file.name], status: 'generating_thumbnail' } }));
+        setUploadProgress(prev => ({ 
+          ...prev, 
+          [file.name]: { ...prev[file.name], status: 'generating_thumbnail', progress: 60 } 
+        }));
+        
         try {
-          thumbnail_url = await generateVideoThumbnail(file);
-           // If thumbnail is a data URL, upload it and get a public URL
-          if (thumbnail_url.startsWith('data:image')) {
-            const thumbFileName = `thumb_${fileId}.jpg`;
-            const thumbFilePath = `media/thumbnails/${thumbFileName}`;
-            const thumbBlob = await (await fetch(thumbnail_url)).blob();
-            const {data: thumbUploadData, error: thumbUploadError} = await supabase.storage
-              .from('gallery')
-              .upload(thumbFilePath, thumbBlob, {contentType: 'image/jpeg'});
-            if (thumbUploadError) throw new Error(`Thumbnail upload failed: ${thumbUploadError.message}`);
+          const thumbnailBlob = await generateVideoThumbnail(file);
+          const thumbFileName = `thumb_${fileId}.jpg`;
+          const thumbFilePath = `media/thumbnails/${thumbFileName}`;
+          
+          const { data: thumbUploadData, error: thumbUploadError } = await supabase.storage
+            .from('gallery')
+            .upload(thumbFilePath, thumbnailBlob, { contentType: 'image/jpeg' });
+            
+          if (thumbUploadError) {
+            console.warn('Thumbnail upload failed, using media URL:', thumbUploadError);
+          } else {
             thumbnail_url = supabase.storage.from('gallery').getPublicUrl(thumbFilePath).data.publicUrl;
+            console.log('Thumbnail URL:', thumbnail_url);
           }
-        } catch (thumbError: any) {
-          console.error("Thumbnail generation/upload error:", thumbError);
-          toast({ 
-            title: "Thumbnail Error", 
-            description: `Could not generate/upload thumbnail for ${file.name}: ${thumbError.message}`, 
-            variant: "destructive" 
-          });
-          // Use a placeholder or the media_url itself if thumbnail fails
-          thumbnail_url = media_url; 
+        } catch (thumbError) {
+          console.warn('Thumbnail generation failed, using media URL:', thumbError);
         }
       }
       
-      const newGalleryItem: Omit<GalleryItem, 'id' | 'order'> = {
+      setUploadProgress(prev => ({ 
+        ...prev, 
+        [file.name]: { ...prev[file.name], progress: 80 } 
+      }));
+
+      // Create database entry
+      const newGalleryItem = {
         title: file.name.substring(0, file.name.lastIndexOf('.')) || file.name,
         description: '',
         media_url,
         media_type: mediaType,
         thumbnail_url,
         featured: false,
-        file_name: file.name,
+        order: galleryItems.length,
       };
+
+      console.log('Inserting gallery item:', newGalleryItem);
 
       const { data: insertedItem, error: insertError } = await supabase
         .from('gallery')
-        .insert({ ...newGalleryItem, order: galleryItems.length }) // Add to end by default
+        .insert(newGalleryItem)
         .select()
         .single();
 
-      if (insertError) throw insertError;
+      if (insertError) {
+        console.error('Database insert error:', insertError);
+        throw new Error(`Database insert failed: ${insertError.message}`);
+      }
+
+      console.log('Gallery item created:', insertedItem);
 
       if (insertedItem) {
         setGalleryItems(prev => [...prev, { 
@@ -212,22 +272,47 @@ const GalleryEditor = () => {
           media_type: insertedItem.media_type as 'image' | 'video', 
           order: insertedItem.order ?? prev.length 
         }]);
-        setUploadProgress(prev => ({ ...prev, [file.name]: { progress: 100, status: 'success', galleryItemId: insertedItem.id } }));
-        toast({ title: "Upload Successful", description: `${file.name} uploaded and added to gallery.` });
+        
+        setUploadProgress(prev => ({ 
+          ...prev, 
+          [file.name]: { progress: 100, status: 'success', galleryItemId: insertedItem.id } 
+        }));
+        
+        toast({ 
+          title: "Upload Successful", 
+          description: `${file.name} uploaded and added to gallery.` 
+        });
+
+        // Remove from upload queue after successful upload
+        setTimeout(() => {
+          removeFileToUpload(file.name);
+        }, 2000);
       }
 
     } catch (error: any) {
       console.error('Error in upload process:', error);
-      setUploadProgress(prev => ({ ...prev, [file.name]: { progress: 0, error: `Processing failed: ${error.message}`, status: 'error' } }));
+      setUploadProgress(prev => ({ 
+        ...prev, 
+        [file.name]: { progress: 0, error: error.message, status: 'error' } 
+      }));
       toast({
-        title: "Processing Error",
-        description: `Failed to process ${file.name}: ${error.message}`,
+        title: "Upload Failed",
+        description: `Failed to upload ${file.name}: ${error.message}`,
         variant: "destructive",
       });
     }
   };
 
   const handleBulkUpload = () => {
+    if (filesToUpload.length === 0) {
+      toast({
+        title: "No Files Selected",
+        description: "Please select files to upload first.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     filesToUpload.forEach(file => {
       if (!uploadProgress[file.name] || uploadProgress[file.name]?.status === 'error') {
         handleFileUpload(file);
@@ -242,56 +327,54 @@ const GalleryEditor = () => {
   };
 
   const deleteGalleryItem = async (id: string) => {
-    // First, try to delete from Supabase storage if media_url is a Supabase storage URL
     const itemToDelete = galleryItems.find(item => item.id === id);
     if (itemToDelete) {
-        try {
-            const urlParts = itemToDelete.media_url.split('/');
-            const fileNameWithPotentialPrefix = urlParts.slice(urlParts.indexOf('gallery') + 2).join('/'); // Path after bucket name
-            
-            // Also attempt to delete thumbnail if it's different and a storage URL
-            if (itemToDelete.thumbnail_url !== itemToDelete.media_url && itemToDelete.thumbnail_url.includes(supabase.storage.from('gallery').getPublicUrl('').data.publicUrl.split('/o/')[0])) {
-                 const thumbUrlParts = itemToDelete.thumbnail_url.split('/');
-                 const thumbFileNameWithPrefix = thumbUrlParts.slice(thumbUrlParts.indexOf('gallery') + 2).join('/');
-                 await supabase.storage.from('gallery').remove([thumbFileNameWithPrefix]);
-            }
-            await supabase.storage.from('gallery').remove([fileNameWithPotentialPrefix]);
-        } catch (storageError) {
-            console.error("Error deleting from storage, proceeding with DB deletion:", storageError);
-            toast({ 
-              title: "Storage Deletion Warning", 
-              description: `Could not delete file from storage, but will remove from gallery list. ${storageError}`, 
-              variant: "destructive" 
-            });
+      try {
+        // Extract file path from URL for deletion
+        const urlParts = itemToDelete.media_url.split('/');
+        const storageIndex = urlParts.findIndex(part => part === 'gallery');
+        if (storageIndex !== -1 && storageIndex < urlParts.length - 2) {
+          const fileNameWithPrefix = urlParts.slice(storageIndex + 2).join('/');
+          await supabase.storage.from('gallery').remove([fileNameWithPrefix]);
         }
+        
+        // Delete thumbnail if different
+        if (itemToDelete.thumbnail_url !== itemToDelete.media_url) {
+          const thumbUrlParts = itemToDelete.thumbnail_url.split('/');
+          const thumbStorageIndex = thumbUrlParts.findIndex(part => part === 'gallery');
+          if (thumbStorageIndex !== -1 && thumbStorageIndex < thumbUrlParts.length - 2) {
+            const thumbFileNameWithPrefix = thumbUrlParts.slice(thumbStorageIndex + 2).join('/');
+            await supabase.storage.from('gallery').remove([thumbFileNameWithPrefix]);
+          }
+        }
+      } catch (storageError) {
+        console.warn("Could not delete from storage:", storageError);
+      }
     }
 
-    // Then delete from the database table
     try {
-        const { error } = await supabase.from('gallery').delete().eq('id', id);
-        if (error) throw error;
-        setGalleryItems(prevItems => prevItems.filter(item => item.id !== id));
-        toast({ title: "Success", description: "Gallery item deleted." });
+      const { error } = await supabase.from('gallery').delete().eq('id', id);
+      if (error) throw error;
+      setGalleryItems(prevItems => prevItems.filter(item => item.id !== id));
+      toast({ title: "Success", description: "Gallery item deleted." });
     } catch (error) {
-        console.error('Error deleting gallery item:', error);
-        toast({ title: "Error", description: "Failed to delete gallery item.", variant: "destructive" });
+      console.error('Error deleting gallery item:', error);
+      toast({ title: "Error", description: "Failed to delete gallery item.", variant: "destructive" });
     }
   };
 
   const saveAllChanges = async () => {
     setSaving(true);
     try {
-      // Update order for all items first
       const orderedItems = galleryItems.map((item, index) => ({ ...item, order: index }));
       setGalleryItems(orderedItems);
 
       const updates = orderedItems.map(item => {
-        const { file_name, ...dbItem } = item; // Don't save temporary client-side file_name
+        const { file_name, ...dbItem } = item;
         return supabase.from('gallery').update(dbItem).eq('id', item.id);
       });
       
       await Promise.all(updates);
-
       toast({ title: "Success", description: "All changes saved successfully!" });
     } catch (error) {
       console.error('Error saving gallery changes:', error);
@@ -343,7 +426,7 @@ const GalleryEditor = () => {
 
         {filesToUpload.length > 0 && (
           <div className="mt-6 space-y-4">
-            <h3 className="text-xl font-medium text-white">Uploading Files ({filesToUpload.length})</h3>
+            <h3 className="text-xl font-medium text-white">Files to Upload ({filesToUpload.length})</h3>
             {filesToUpload.map(file => (
               <div key={file.name} className="bg-slate-700/50 p-4 rounded-lg flex items-center justify-between">
                 <div className="flex-grow">
@@ -360,9 +443,9 @@ const GalleryEditor = () => {
                           <XCircle size={16} className="mr-1" /> {uploadProgress[file.name]?.error}
                         </p>
                       )}
-                       {uploadProgress[file.name]?.status === 'uploading' && <p className="text-cyan-400 text-sm mt-1">Uploading...</p>}
-                       {uploadProgress[file.name]?.status === 'generating_thumbnail' && <p className="text-yellow-400 text-sm mt-1">Generating thumbnail...</p>}
-                       {uploadProgress[file.name]?.status === 'success' && <p className="text-green-400 text-sm mt-1 flex items-center"><CheckCircle size={16} className="mr-1" /> Uploaded successfully!</p>}
+                      {uploadProgress[file.name]?.status === 'uploading' && <p className="text-cyan-400 text-sm mt-1">Uploading...</p>}
+                      {uploadProgress[file.name]?.status === 'generating_thumbnail' && <p className="text-yellow-400 text-sm mt-1">Generating thumbnail...</p>}
+                      {uploadProgress[file.name]?.status === 'success' && <p className="text-green-400 text-sm mt-1 flex items-center"><CheckCircle size={16} className="mr-1" /> Uploaded successfully!</p>}
                     </div>
                   )}
                 </div>
@@ -371,7 +454,9 @@ const GalleryEditor = () => {
                 </Button>
               </div>
             ))}
-            <Button onClick={handleBulkUpload} disabled={filesToUpload.every(f => uploadProgress[f.name]?.status === 'success' || uploadProgress[f.name]?.status === 'uploading')}
+            <Button 
+              onClick={handleBulkUpload} 
+              disabled={filesToUpload.every(f => uploadProgress[f.name]?.status === 'success' || uploadProgress[f.name]?.status === 'uploading')}
               className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white"
             >
               <UploadCloud size={18} className="mr-2" /> Start Uploads
@@ -382,7 +467,7 @@ const GalleryEditor = () => {
 
       {/* Gallery Items Editor */}
       <div className="bg-slate-800/50 backdrop-blur-md rounded-2xl p-8 border border-slate-700/50">
-        <h2 className="text-2xl font-semibold text-white mb-6">Gallery Items</h2>
+        <h2 className="text-2xl font-semibold text-white mb-6">Gallery Items ({galleryItems.length})</h2>
         {galleryItems.length === 0 && !loading && (
           <p className="text-gray-400 text-center py-4">No gallery items yet. Upload some media to get started.</p>
         )}
