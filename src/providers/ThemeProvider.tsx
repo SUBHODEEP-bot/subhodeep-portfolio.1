@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,19 +16,18 @@ export const useThemeSettings = () => useContext(ThemeContext);
 
 const applyTheme = (theme: string) => {
   const root = document.documentElement;
-  const themes = ['dark', 'midnight', 'forest', 'crimson', 'ocean', 'graphite', 'rose', 'solarized-dark', 'dracula', 'nord-dark', 'obsidian'].map(t => t === 'dark' ? 'dark' : `theme-${t}`);
-  root.classList.remove(...themes);
+  // This list should be the single source of truth for available themes.
+  const availableThemeIds = ['dark', 'midnight', 'forest', 'crimson', 'ocean', 'graphite', 'rose', 'solarized-dark', 'dracula', 'nord-dark', 'obsidian'];
+  const allThemeClasses = availableThemeIds.map(t => t === 'dark' ? 'dark' : `theme-${t}`);
+  
+  root.classList.remove(...allThemeClasses);
 
-  if (!theme) { // Default to dark if theme is null/undefined
-    console.warn("ThemeProvider: Applying default 'dark' theme because provided theme is empty.");
+  if (theme && availableThemeIds.includes(theme)) {
+    const themeClass = theme === 'dark' ? 'dark' : `theme-${theme}`;
+    root.classList.add(themeClass);
+  } else {
+    console.warn(`ThemeProvider: An invalid theme ('${theme}') was provided. Applying default 'dark' theme.`);
     root.classList.add('dark');
-    return;
-  }
-
-  if (theme === 'dark') {
-    root.classList.add('dark');
-  } else if (theme !== 'light') {
-    root.classList.add(`theme-${theme}`);
   }
 };
 
@@ -60,10 +60,8 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   // Effect to apply the theme whenever the active_theme from settings changes.
   useEffect(() => {
     if (settings) {
-      console.log(`THEME PROVIDER: Applying theme from settings: ${settings.active_theme}`);
       applyTheme(settings.active_theme);
     } else {
-      console.log("THEME PROVIDER: No settings found, applying default 'dark' theme.");
       applyTheme('dark');
     }
   }, [settings?.active_theme]);
@@ -79,11 +77,12 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
     if (settings.enabled && settings.selected_themes && settings.selected_themes.length > 0) {
       console.log(`THEME PROVIDER: Auto-cycling is ON. Interval: ${settings.interval}s. Themes:`, settings.selected_themes);
       
-      const themes = settings.selected_themes;
-
       intervalId = window.setInterval(async () => {
         const currentSettings = queryClient.getQueryData<ThemeSettings>(['theme_settings']);
         if (!currentSettings || !currentSettings.enabled) return;
+
+        const themes = currentSettings.selected_themes;
+        if (!themes || themes.length === 0) return;
 
         const currentThemeIndex = themes.indexOf(currentSettings.active_theme);
         const nextThemeIndex = (currentThemeIndex + 1) % themes.length;
