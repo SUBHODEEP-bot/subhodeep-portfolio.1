@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Save, RefreshCw, Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import type { ThemeSettings } from '@/providers/ThemeProvider';
+import type { Theme, ThemeSettings } from '@/providers/ThemeProvider';
 
 const defaultThemeSettings: ThemeSettings = {
   static_theme: 'dark',
@@ -115,7 +115,7 @@ const SettingsEditor = () => {
     }));
   };
 
-  const handleThemeCycleChange = (theme: string) => {
+  const handleThemeCycleChange = (theme: Theme) => {
     const currentThemes = settings.theme_settings.cycle_themes;
     let newThemes;
     if (currentThemes.includes(theme)) {
@@ -135,7 +135,7 @@ const SettingsEditor = () => {
     return count;
   };
 
-  const availableThemes = ['dark', 'blue', 'purple', 'green', 'sunset'];
+  const availableThemes: Theme[] = ['dark', 'blue', 'purple', 'green', 'sunset'];
   const availableIntervals = [
     { label: '10 seconds', value: 10000 },
     { label: '30 seconds', value: 30000 },
@@ -183,7 +183,7 @@ const SettingsEditor = () => {
               <label className="block text-sm font-medium text-gray-300 mb-2">Static Theme</label>
               <select
                 value={settings.theme_settings.static_theme}
-                onChange={(e) => updateThemeSetting('static_theme', e.target.value)}
+                onChange={(e) => updateThemeSetting('static_theme', e.target.value as Theme)}
                 className="w-full capitalize px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors"
               >
                 {availableThemes.map(theme => <option key={theme} value={theme}>{theme}</option>)}

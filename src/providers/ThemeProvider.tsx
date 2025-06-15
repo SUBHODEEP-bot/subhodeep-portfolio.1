@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-type Theme = 'dark' | 'blue' | 'purple' | 'green' | 'sunset';
+export type Theme = 'dark' | 'blue' | 'purple' | 'green' | 'sunset';
 
 export interface ThemeSettings {
   static_theme: Theme;
@@ -22,6 +22,18 @@ const defaultSettings: ThemeSettings = {
     cycle_interval: 30000,
     cycle_themes: ['dark', 'blue'],
 };
+
+function isThemeSettings(settings: any): settings is ThemeSettings {
+  return (
+    settings &&
+    typeof settings.static_theme === 'string' &&
+    ['dark', 'blue', 'purple', 'green', 'sunset'].includes(settings.static_theme) &&
+    typeof settings.auto_cycle_enabled === 'boolean' &&
+    typeof settings.cycle_interval === 'number' &&
+    Array.isArray(settings.cycle_themes) &&
+    settings.cycle_themes.every((t: any) => typeof t === 'string' && ['dark', 'blue', 'purple', 'green', 'sunset'].includes(t))
+  );
+}
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
@@ -50,7 +62,13 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
         console.warn('Theme settings not found, using default. Error:', error?.message);
         setSettings(defaultSettings);
       } else {
-        setSettings(data.content_value as ThemeSettings);
+        const fetchedSettings = data.content_value as unknown;
+        if (isThemeSettings(fetchedSettings)) {
+            setSettings(fetchedSettings);
+        } else {
+            console.warn('Fetched theme settings are invalid, using default.');
+            setSettings(defaultSettings);
+        }
       }
     };
     fetchThemeSettings();
@@ -67,7 +85,12 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
         },
         (payload) => {
           if (payload.new && 'content_value' in payload.new) {
-            setSettings(payload.new.content_value as ThemeSettings);
+            const newSettings = payload.new.content_value as unknown;
+            if (isThemeSettings(newSettings)) {
+                setSettings(newSettings);
+            } else {
+                console.warn('Received invalid theme settings from subscription.');
+            }
           }
         }
       )
