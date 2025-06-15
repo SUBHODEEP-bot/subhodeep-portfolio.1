@@ -186,23 +186,35 @@ const Contact = () => {
             <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
               <h3 className="text-xl font-semibold text-white mb-6">Connect with Me</h3>
               <div className="flex flex-wrap gap-4">
-                {socialLinks.map((social) => {
-                  const IconComponent = iconComponents[social.icon];
-                  if (!IconComponent) return null; // or a default icon
+                {socialLinks.length > 0 ? (
+                  socialLinks.map((social) => {
+                    const IconComponent = iconComponents[social.icon];
+                    if (!IconComponent) return null;
 
-                  return (
-                    <a
-                      key={social.platform}
-                      href={social.url || '#'}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center text-white transition-all duration-300 hover:bg-white/20 transform hover:scale-110"
-                      aria-label={social.platform}
-                    >
-                      <IconComponent size={20} />
-                    </a>
-                  );
-                })}
+                    return (
+                      <div key={social.platform} className="relative group">
+                        <a
+                          href={social.url || '#'}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center text-white transition-all duration-300 hover:bg-white/20 transform hover:scale-110"
+                          aria-label={`Visit my ${social.platform}`}
+                        >
+                          <IconComponent size={20} />
+                        </a>
+                        {/* Hover Tooltip */}
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap">
+                          Visit my {social.platform}
+                          <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <p className="text-gray-400 text-sm">
+                    No social links configured yet. Add them in the admin panel!
+                  </p>
+                )}
               </div>
             </div>
 
