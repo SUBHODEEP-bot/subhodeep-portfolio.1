@@ -17,23 +17,6 @@ https://know-about-subhodeep.netlify.app/
 - 🧩 shadcn/ui components
 - 🌐 Supabase (for database/backend, if used)
 
----
-
-## 📁 Project Structure
-subhodeep-personal-portal/
-├── public/ # Static files (e.g., images, icons)
-├── src/ # Application source code
-│ ├── components/ # UI components
-│ ├── hooks/ # Custom React hooks
-│ ├── lib/ # Utility functions
-│ ├── pages/ # Main pages
-│ ├── providers/ # Context providers
-├── index.html # Main HTML file
-├── vite.config.ts # Vite config
-├── tailwind.config.ts # Tailwind config
-├── tsconfig.json # TypeScript config
-└── README.md # Project info (you are here!)
-
 
 ---
 
@@ -57,5 +40,4 @@ npm install
 
 # 4. Run the development server
 npm run dev
-
 
