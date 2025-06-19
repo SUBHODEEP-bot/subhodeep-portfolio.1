@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ArrowDown, Github, Linkedin, Youtube, Twitter, LucideIcon, icons } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import ImageModal from './ImageModal';
 
 interface HeroData {
   name: string;
@@ -38,6 +39,8 @@ const Hero = () => {
     avatar_url: ''
   });
   const [socialLinks, setSocialLinks] = useState<SocialLinkData[]>([]);
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+
   useEffect(() => {
     const fetchHeroData = async () => {
       try {
@@ -186,15 +189,31 @@ const Hero = () => {
       });
     }
   };
+
+  const handleImageClick = () => {
+    if (heroData.avatar_url) {
+      setIsImageModalOpen(true);
+    }
+  };
+
   return <div className="relative min-h-screen flex items-center justify-center px-4 pt-16">
       <div className="text-center z-10">
         {/* Profile Image */}
         <div className="mb-8">
           <div className="relative mx-auto w-48 h-48 mb-6">
             <div className="w-full h-full rounded-full">
-              {heroData.avatar_url ? <img src={heroData.avatar_url} alt={heroData.name} className="w-full h-full rounded-full object-cover" /> : <div className="w-full h-full rounded-full bg-gray-300 flex items-center justify-center text-6xl font-bold text-gray-600">
+              {heroData.avatar_url ? (
+                <img 
+                  src={heroData.avatar_url} 
+                  alt={heroData.name} 
+                  className="w-full h-full rounded-full object-cover cursor-pointer hover:opacity-90 transition-opacity" 
+                  onClick={handleImageClick}
+                />
+              ) : (
+                <div className="w-full h-full rounded-full bg-gray-300 flex items-center justify-center text-6xl font-bold text-gray-600">
                   {heroData.name.split(" ").map(n => n[0]).join("").toUpperCase() || "SP"}
-                </div>}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -236,6 +255,16 @@ const Hero = () => {
           </button>
         </div>
       </div>
+
+      {/* Image Modal */}
+      <ImageModal
+        isOpen={isImageModalOpen}
+        onClose={() => setIsImageModalOpen(false)}
+        imageUrl={heroData.avatar_url || ''}
+        imageAlt={heroData.name}
+        title={heroData.name}
+      />
     </div>;
 };
+
 export default Hero;
