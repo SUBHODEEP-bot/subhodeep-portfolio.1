@@ -131,54 +131,54 @@ const Contact = () => {
               Get In Touch
             </h2>
             <div className="w-24 h-1 bg-gradient-to-r from-cyan-400 to-purple-500 mx-auto mb-4 sm:mb-6"></div>
-            <p className="text-gray-300 text-base sm:text-lg max-w-2xl mx-auto">
+            <p className="text-xs sm:text-sm md:text-base text-gray-300 max-w-2xl mx-auto">
               I'm always open to discussing new opportunities, collaborations, or just having a conversation about technology and innovation.
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-4 sm:gap-6 md:gap-12">
             {/* Contact Information */}
-            <div className="space-y-6 sm:space-y-8">
-              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 sm:p-8 border border-white/20">
-                <h3 className="text-xl sm:text-2xl font-semibold text-white mb-4 sm:mb-6">Contact Information</h3>
+            <div className="space-y-4 sm:space-y-5 md:space-y-6 lg:space-y-8">
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 sm:p-4 md:p-5 lg:p-6 border border-white/20">
+                <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-semibold text-white mb-3 sm:mb-4 md:mb-5 lg:mb-6">Contact Information</h3>
                 
-                <div className="space-y-4 sm:space-y-6">
-                  <div className="flex items-start space-x-4">
-                    <div className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
-                      <Mail className="text-white" size={20} />
+                <div className="space-y-2 sm:space-y-3 md:space-y-4 lg:space-y-6">
+                  <div className="flex items-start space-x-2 sm:space-x-3 md:space-x-4">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
+                      <Mail className="text-white" size={16} />
                     </div>
-                    <div>
-                      <h4 className="text-white font-medium mb-1">Email</h4>
-                      <p className="text-gray-300">{contactData.email}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start space-x-4">
-                    <div className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
-                      <Phone className="text-white" size={20} />
-                    </div>
-                    <div>
-                      <h4 className="text-white font-medium mb-1">Phone</h4>
-                      <p className="text-gray-300">{contactData.phone}</p>
+                    <div className="min-w-0">
+                      <h4 className="text-xs sm:text-sm font-medium text-white mb-0.5">Email</h4>
+                      <p className="text-xs sm:text-sm text-gray-300 break-all">{contactData.email}</p>
                     </div>
                   </div>
 
-                  <div className="flex items-start space-x-4">
-                    <div className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
-                      <MapPin className="text-white" size={20} />
+                  <div className="flex items-start space-x-2 sm:space-x-3 md:space-x-4">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
+                      <Phone className="text-white" size={16} />
                     </div>
                     <div>
-                      <h4 className="text-white font-medium mb-1">Location</h4>
-                      <p className="text-gray-300">{contactData.location}</p>
+                      <h4 className="text-xs sm:text-sm font-medium text-white mb-0.5">Phone</h4>
+                      <p className="text-xs sm:text-sm text-gray-300">{contactData.phone}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start space-x-2 sm:space-x-3 md:space-x-4">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
+                      <MapPin className="text-white" size={16} />
+                    </div>
+                    <div>
+                      <h4 className="text-xs sm:text-sm font-medium text-white mb-0.5">Location</h4>
+                      <p className="text-xs sm:text-sm text-gray-300">{contactData.location}</p>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Social Links */}
-              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-                <h3 className="text-xl font-semibold text-white mb-6">Connect with Me</h3>
-                <div className="flex flex-wrap gap-4">
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 sm:p-4 md:p-5 lg:p-6 border border-white/20">
+                <h3 className="text-sm sm:text-base md:text-lg font-semibold text-white mb-3 sm:mb-4 md:mb-6">Connect with Me</h3>
+                <div className="flex flex-wrap gap-2 sm:gap-3 md:gap-4">
                   {socialLinks.map((social) => {
                     const IconComponent = social.icon;
                     const hasUrl = social.url && social.url.trim() !== '';
@@ -191,22 +191,22 @@ const Contact = () => {
                               href={social.url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className={`w-12 h-12 bg-white/10 rounded-full flex items-center justify-center text-white transition-all duration-300 hover:bg-white/20 transform hover:scale-110 ${social.color}`}
+                              className={`w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white/10 rounded-full flex items-center justify-center text-white transition-all duration-300 hover:bg-white/20 transform hover:scale-110 ${social.color}`}
                               aria-label={social.name}
                             >
-                              <IconComponent size={20} />
+                              <IconComponent size={16} />
                             </a>
                           ) : (
                             <div
-                              className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center text-white/50 transition-all duration-300 cursor-not-allowed"
+                              className="w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white/10 rounded-full flex items-center justify-center text-white/50 transition-all duration-300 cursor-not-allowed"
                               aria-label={social.name}
                             >
-                              <IconComponent size={20} />
+                              <IconComponent size={16} />
                             </div>
                           )}
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>{hasUrl ? `Visit my ${social.name}` : `${social.name} link not configured`}</p>
+                          <p className="text-xs">{hasUrl ? `Visit my ${social.name}` : `${social.name} link not configured`}</p>
                         </TooltipContent>
                       </Tooltip>
                     );
@@ -215,17 +215,17 @@ const Contact = () => {
               </div>
 
               {/* Resume Download */}
-              <div className="bg-gradient-to-r from-cyan-500/20 to-purple-500/20 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-                <h3 className="text-xl font-semibold text-white mb-4">Download Resume</h3>
-                <p className="text-gray-300 mb-6">
+              <div className="bg-gradient-to-r from-cyan-500/20 to-purple-500/20 backdrop-blur-md rounded-2xl p-3 sm:p-4 md:p-5 lg:p-6 border border-white/20">
+                <h3 className="text-sm sm:text-base md:text-lg font-semibold text-white mb-2 sm:mb-3 md:mb-4">Download Resume</h3>
+                <p className="text-xs sm:text-sm text-gray-300 mb-3 sm:mb-4 md:mb-6">
                   Get a comprehensive overview of my skills, experience, and achievements.
                 </p>
                 <a href={contactData.resume_url || '#'} download target="_blank" rel="noopener noreferrer">
                   <button 
                     disabled={!contactData.resume_url}
-                    className="flex items-center space-x-2 bg-gradient-to-r from-cyan-500 to-purple-500 text-white px-6 py-3 rounded-full font-medium hover:from-cyan-600 hover:to-purple-600 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex items-center space-x-1 sm:space-x-2 bg-gradient-to-r from-cyan-500 to-purple-500 text-white px-3 py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 rounded-full text-xs sm:text-sm font-medium hover:from-cyan-600 hover:to-purple-600 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <Download size={20} />
+                    <Download size={14} />
                     <span>Download Resume</span>
                   </button>
                 </a>
@@ -233,12 +233,12 @@ const Contact = () => {
             </div>
 
             {/* Contact Form */}
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 sm:p-8 border border-white/20">
-              <h3 className="text-xl sm:text-2xl font-semibold text-white mb-4 sm:mb-6">Send a Message</h3>
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 sm:p-4 md:p-5 lg:p-6 border border-white/20">
+              <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-semibold text-white mb-3 sm:mb-4 md:mb-5 lg:mb-6">Send a Message</h3>
               
-                <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4 md:space-y-5 lg:space-y-6">
                 <div>
-                  <label htmlFor="name" className="block text-white font-medium mb-2">
+                  <label htmlFor="name" className="block text-xs sm:text-sm font-medium text-white mb-1.5 sm:mb-2">
                     Full Name
                   </label>
                   <input
@@ -248,13 +248,13 @@ const Contact = () => {
                     value={formData.name}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all duration-300"
+                    className="w-full px-3 py-2 sm:px-4 sm:py-2.5 md:py-3 bg-white/10 border border-white/20 rounded-lg text-xs sm:text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all duration-300"
                     placeholder="Enter your full name"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="email" className="block text-white font-medium mb-2">
+                  <label htmlFor="email" className="block text-xs sm:text-sm font-medium text-white mb-1.5 sm:mb-2">
                     Email Address
                   </label>
                   <input
@@ -264,13 +264,13 @@ const Contact = () => {
                     value={formData.email}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all duration-300"
+                    className="w-full px-3 py-2 sm:px-4 sm:py-2.5 md:py-3 bg-white/10 border border-white/20 rounded-lg text-xs sm:text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all duration-300"
                     placeholder="Enter your email address"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="message" className="block text-white font-medium mb-2">
+                  <label htmlFor="message" className="block text-xs sm:text-sm font-medium text-white mb-1.5 sm:mb-2">
                     Message
                   </label>
                   <textarea
@@ -279,8 +279,8 @@ const Contact = () => {
                     value={formData.message}
                     onChange={handleInputChange}
                     required
-                    rows={6}
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all duration-300 resize-none"
+                    rows={4}
+                    className="w-full px-3 py-2 sm:px-4 sm:py-2.5 md:py-3 bg-white/10 border border-white/20 rounded-lg text-xs sm:text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all duration-300 resize-none"
                     placeholder="Tell me about your project or just say hello..."
                   />
                 </div>
@@ -288,9 +288,9 @@ const Contact = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-cyan-500 to-purple-500 text-white px-4 py-3 sm:px-6 sm:py-4 rounded-lg font-medium hover:from-cyan-600 hover:to-purple-600 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full flex items-center justify-center space-x-1 sm:space-x-2 bg-gradient-to-r from-cyan-500 to-purple-500 text-white px-3 py-2 sm:px-4 sm:py-2.5 md:px-6 md:py-3 rounded-lg text-xs sm:text-sm font-medium hover:from-cyan-600 hover:to-purple-600 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Send size={20} />
+                  <Send size={14} />
                   <span>{isSubmitting ? 'Sending...' : 'Send Message'}</span>
                 </button>
               </form>
@@ -298,8 +298,8 @@ const Contact = () => {
           </div>
 
           {/* Footer */}
-          <div className="text-center mt-8 sm:mt-16 pt-6 sm:pt-8 border-t border-white/20">
-            <p className="text-gray-400 text-sm sm:text-base">
+          <div className="text-center mt-6 sm:mt-8 md:mt-12 lg:mt-16 pt-4 sm:pt-5 md:pt-6 lg:pt-8 border-t border-white/20">
+            <p className="text-xs sm:text-sm text-gray-400">
               © 2024 Subhodeep Pal. Built with passion and powered by innovation.
             </p>
           </div>
