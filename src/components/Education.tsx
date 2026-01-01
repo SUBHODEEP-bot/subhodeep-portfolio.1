@@ -48,7 +48,7 @@ const Education = () => {
 
   if (loading) {
     return (
-      <div className="relative py-20 px-4">
+      <div className="relative py-12 sm:py-20 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <div className="animate-pulse">
             <div className="h-8 bg-white/20 rounded mb-4"></div>
@@ -64,7 +64,7 @@ const Education = () => {
   }
 
   return (
-    <div className="relative py-20 px-4">
+    <div className="relative py-12 sm:py-20 px-4">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">

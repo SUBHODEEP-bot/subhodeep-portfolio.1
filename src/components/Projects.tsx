@@ -41,7 +41,7 @@ const Projects = () => {
 
   if (loading) {
     return (
-      <div className="relative py-20 px-4">
+      <div className="relative py-12 sm:py-20 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="text-center">
             <div className="animate-pulse text-white text-xl">Loading projects...</div>
@@ -52,7 +52,7 @@ const Projects = () => {
   }
 
   return (
-    <div className="relative py-20 px-4">
+    <div className="relative py-12 sm:py-20 px-4">
       <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">
@@ -126,25 +126,25 @@ const Projects = () => {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex space-x-3">
+                  <div className="flex flex-col sm:flex-row gap-3">
                     {project.github_url && (
                       <a
                         href={project.github_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center space-x-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors flex-1 justify-center"
+                        className="w-full sm:flex-1 flex items-center justify-center space-x-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
                       >
                         <Github size={16} />
                         <span>Code</span>
                       </a>
                     )}
-                    
+
                     {project.live_url && (
                       <a
                         href={project.live_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white rounded-lg transition-all duration-300 flex-1 justify-center"
+                        className="w-full sm:flex-1 flex items-center justify-center space-x-2 px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white rounded-lg transition-all duration-300"
                       >
                         <ExternalLink size={16} />
                         <span>Demo</span>

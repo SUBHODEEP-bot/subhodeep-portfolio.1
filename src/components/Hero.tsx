@@ -196,7 +196,7 @@ const Hero = () => {
     }
   };
 
-    return <div className="relative min-h-screen flex items-center justify-center px-4 pt-16">
+    return <div className="relative min-h-[60vh] sm:min-h-screen flex items-center justify-center px-4 pt-16">
       <div className="text-center z-10">
         {/* Profile Image */}
         <div className="mb-8">

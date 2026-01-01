@@ -52,7 +52,7 @@ const About = () => {
   }, []);
 
   return (
-    <div className="relative py-20 px-4">
+    <div className="relative py-12 sm:py-20 px-4">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">

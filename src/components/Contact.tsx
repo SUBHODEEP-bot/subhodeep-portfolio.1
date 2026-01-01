@@ -136,7 +136,7 @@ const Contact = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12">
             {/* Contact Information */}
             <div className="space-y-8">
               <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
@@ -233,10 +233,10 @@ const Contact = () => {
             </div>
 
             {/* Contact Form */}
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 sm:p-8 border border-white/20">
               <h3 className="text-2xl font-semibold text-white mb-6">Send a Message</h3>
               
-              <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                   <label htmlFor="name" className="block text-white font-medium mb-2">
                     Full Name
@@ -288,7 +288,7 @@ const Contact = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-cyan-500 to-purple-500 text-white px-6 py-4 rounded-lg font-medium hover:from-cyan-600 hover:to-purple-600 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-cyan-500 to-purple-500 text-white px-4 py-3 sm:px-6 sm:py-4 rounded-lg font-medium hover:from-cyan-600 hover:to-purple-600 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Send size={20} />
                   <span>{isSubmitting ? 'Sending...' : 'Send Message'}</span>

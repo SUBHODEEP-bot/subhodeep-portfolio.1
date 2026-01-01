@@ -62,7 +62,7 @@ const Gallery = () => {
 
   if (loading) {
     return (
-      <div className="relative py-20 px-4">
+      <div className="relative py-12 sm:py-20 px-4">
         <div className="max-w-6xl mx-auto text-center">
           <div className="animate-pulse">
             <div className="h-8 bg-white/20 rounded mb-4 mx-auto w-48"></div>
@@ -80,7 +80,7 @@ const Gallery = () => {
 
   if (gallery.length === 0) {
     return (
-      <div className="relative py-20 px-4">
+      <div className="relative py-12 sm:py-20 px-4">
         <div className="max-w-6xl mx-auto text-center">
           <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">
             Gallery
@@ -97,7 +97,7 @@ const Gallery = () => {
   }
 
   return (
-    <div className="relative py-20 px-4">
+    <div className="relative py-12 sm:py-20 px-4">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">

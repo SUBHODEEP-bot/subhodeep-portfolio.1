@@ -43,7 +43,7 @@ const Awards = () => {
 
   if (isLoading) {
     return (
-      <div className="py-20 text-center text-white">
+      <div className="py-12 sm:py-20 text-center text-white">
         <p>Loading Awards...</p>
       </div>
     );
@@ -51,7 +51,7 @@ const Awards = () => {
 
   if (error) {
     return (
-      <div className="py-20 text-center text-red-400">
+      <div className="py-12 sm:py-20 text-center text-red-400">
         <p>Error loading awards: {(error as Error).message}</p>
       </div>
     );
@@ -62,7 +62,7 @@ const Awards = () => {
   }
 
   return (
-    <div className="py-20">
+    <div className="py-12 sm:py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-extrabold text-white sm:text-5xl">
