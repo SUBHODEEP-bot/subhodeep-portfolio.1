@@ -69,7 +69,7 @@ const Projects = () => {
             <p className="text-xl">No projects available yet.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 md:gap-8">
             {projects.map((project) => (
               <div
                 key={project.id}
@@ -104,21 +104,21 @@ const Projects = () => {
                 </div>
 
                 {/* Project Content */}
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-white mb-3 group-hover:text-cyan-400 transition-colors">
+                <div className="p-3 sm:p-4 md:p-6">
+                  <h3 className="text-base sm:text-lg md:text-xl font-bold text-white mb-2 sm:mb-3 group-hover:text-cyan-400 transition-colors">
                     {project.title}
                   </h3>
                   
-                  <p className="text-gray-300 mb-4 line-clamp-3">
+                  <p className="text-xs sm:text-sm text-gray-300 mb-3 sm:mb-4 line-clamp-2 sm:line-clamp-3">
                     {project.description}
                   </p>
 
                   {/* Tech Stack */}
-                  <div className="flex flex-wrap gap-2 mb-6">
+                  <div className="flex flex-wrap gap-1 sm:gap-2 mb-3 sm:mb-6">
                     {project.tech_stack.map((tech, index) => (
                       <span
                         key={index}
-                        className="px-3 py-1 bg-blue-500/20 text-blue-300 rounded-full text-xs font-medium"
+                        className="px-2 py-0.5 sm:px-3 sm:py-1 bg-blue-500/20 text-blue-300 rounded-full text-xs font-medium"
                       >
                         {tech}
                       </span>

@@ -72,24 +72,24 @@ const Awards = () => {
             Recognition of my hard work and dedication.
           </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
           {awards.map((award) => (
-            <Card key={award.id} className="bg-black/30 backdrop-blur-sm border border-white/10 text-white transform hover:scale-105 transition-transform duration-300">
-              <CardHeader>
+            <Card key={award.id} className="bg-black/30 backdrop-blur-sm border border-white/10 text-white transform hover:scale-105 transition-transform duration-300 p-0">
+              <CardHeader className="p-3 sm:p-4">
                 <img 
                   src={award.image_url} 
                   alt={award.title} 
-                  className="w-full h-40 sm:h-48 object-cover rounded-t-lg cursor-pointer hover:opacity-90 transition-opacity duration-200" 
+                  className="w-full h-24 sm:h-32 md:h-40 object-cover rounded cursor-pointer hover:opacity-90 transition-opacity duration-200" 
                   onClick={() => handleImageClick(award)}
                   title="Click to view full size"
                 />
               </CardHeader>
-              <CardContent className="p-6">
-                <CardTitle className="text-xl font-bold text-cyan-400">{award.title}</CardTitle>
+              <CardContent className="p-3 sm:p-4 md:p-6">
+                <CardTitle className="text-sm sm:text-base md:text-lg font-bold text-cyan-400">{award.title}</CardTitle>
                 {award.issued_date && (
-                  <p className="text-sm text-slate-400 mt-1">{new Date(award.issued_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}</p>
+                  <p className="text-xs sm:text-sm text-slate-400 mt-1">{new Date(award.issued_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}</p>
                 )}
-                <p className="mt-4 text-slate-300">{award.description}</p>
+                <p className="mt-2 sm:mt-4 text-xs sm:text-sm text-slate-300">{award.description}</p>
               </CardContent>
             </Card>
           ))}

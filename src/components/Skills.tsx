@@ -88,7 +88,7 @@ const Skills = () => {
                   <div className={`w-16 h-1 bg-gradient-to-r ${category.color} mx-auto`}></div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
                   {categorySkills.map((skill) => {
                     const IconComponent = getIconComponent(skill.icon_name);
                     
