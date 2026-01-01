@@ -5,7 +5,7 @@ This is the personal portfolio website of **Subhodeep Pal**, designed to showcas
 ---
 
 ## 🌐 Live Website
-https://know-about-subhodeep.netlify.app/
+https://portfolio-subhodeep-pal.netlify.app/
 
 ---
 
