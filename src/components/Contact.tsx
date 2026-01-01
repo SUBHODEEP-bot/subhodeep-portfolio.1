@@ -124,25 +124,25 @@ const Contact = () => {
 
   return (
     <TooltipProvider>
-      <div className="relative py-20 px-4">
+      <div className="relative py-12 sm:py-20 px-4">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
+          <div className="text-center mb-8 sm:mb-16">
             <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">
               Get In Touch
             </h2>
-            <div className="w-24 h-1 bg-gradient-to-r from-cyan-400 to-purple-500 mx-auto mb-6"></div>
-            <p className="text-gray-300 text-lg max-w-2xl mx-auto">
+            <div className="w-24 h-1 bg-gradient-to-r from-cyan-400 to-purple-500 mx-auto mb-4 sm:mb-6"></div>
+            <p className="text-gray-300 text-base sm:text-lg max-w-2xl mx-auto">
               I'm always open to discussing new opportunities, collaborations, or just having a conversation about technology and innovation.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12">
             {/* Contact Information */}
-            <div className="space-y-8">
-              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-                <h3 className="text-2xl font-semibold text-white mb-6">Contact Information</h3>
+            <div className="space-y-6 sm:space-y-8">
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 sm:p-8 border border-white/20">
+                <h3 className="text-xl sm:text-2xl font-semibold text-white mb-4 sm:mb-6">Contact Information</h3>
                 
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                   <div className="flex items-start space-x-4">
                     <div className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
                       <Mail className="text-white" size={20} />
@@ -234,9 +234,9 @@ const Contact = () => {
 
             {/* Contact Form */}
             <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 sm:p-8 border border-white/20">
-              <h3 className="text-2xl font-semibold text-white mb-6">Send a Message</h3>
+              <h3 className="text-xl sm:text-2xl font-semibold text-white mb-4 sm:mb-6">Send a Message</h3>
               
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
                 <div>
                   <label htmlFor="name" className="block text-white font-medium mb-2">
                     Full Name
@@ -298,8 +298,8 @@ const Contact = () => {
           </div>
 
           {/* Footer */}
-          <div className="text-center mt-16 pt-8 border-t border-white/20">
-            <p className="text-gray-400">
+          <div className="text-center mt-8 sm:mt-16 pt-6 sm:pt-8 border-t border-white/20">
+            <p className="text-gray-400 text-sm sm:text-base">
               © 2024 Subhodeep Pal. Built with passion and powered by innovation.
             </p>
           </div>

@@ -54,11 +54,11 @@ const About = () => {
   return (
     <div className="relative py-12 sm:py-20 px-4">
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">
+        <div className="text-center mb-8 sm:mb-16">
+          <h2 className="text-3xl md:text-5xl font-bold text-white mb-3 sm:mb-4">
             About Me
           </h2>
-          <div className="w-24 h-1 bg-gradient-to-r from-cyan-400 to-purple-500 mx-auto"></div>
+          <div className="w-24 h-1 bg-gradient-to-r from-cyan-400 to-purple-500 mx-auto mb-4 sm:mb-6"></div>
         </div>
 
         <div className="grid md:grid-cols-2 gap-12 items-center">

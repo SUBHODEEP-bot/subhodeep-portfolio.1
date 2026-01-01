@@ -54,11 +54,11 @@ const Projects = () => {
   return (
     <div className="relative py-12 sm:py-20 px-4">
       <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">
+          <div className="text-center mb-8 sm:mb-16">
+            <h2 className="text-3xl md:text-5xl font-bold text-white mb-3 sm:mb-4">
             Featured Projects
           </h2>
-          <div className="w-24 h-1 bg-gradient-to-r from-cyan-400 to-purple-500 mx-auto mb-6"></div>
+          <div className="w-24 h-1 bg-gradient-to-r from-cyan-400 to-purple-500 mx-auto mb-4 sm:mb-6"></div>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
             A showcase of my recent work, featuring innovative solutions and cutting-edge technologies
           </p>

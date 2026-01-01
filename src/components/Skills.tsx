@@ -65,17 +65,17 @@ const Skills = () => {
   return (
     <div className="relative py-12 sm:py-20 px-4">
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">
+        <div className="text-center mb-8 sm:mb-16">
+          <h2 className="text-3xl md:text-5xl font-bold text-white mb-3 sm:mb-4">
             Skills & Expertise
           </h2>
-          <div className="w-24 h-1 bg-gradient-to-r from-cyan-400 to-purple-500 mx-auto mb-6"></div>
+          <div className="w-24 h-1 bg-gradient-to-r from-cyan-400 to-purple-500 mx-auto mb-4 sm:mb-6"></div>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
             A comprehensive overview of my technical skills, tools I work with, and soft skills that drive my success
           </p>
         </div>
 
-        <div className="space-y-16">
+        <div className="space-y-10 sm:space-y-16">
           {categories.map((category) => {
             const categorySkills = getSkillsByCategory(category.key);
             

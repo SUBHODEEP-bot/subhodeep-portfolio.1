@@ -231,7 +231,7 @@ const Hero = () => {
         </div>
 
         {/* Description */}
-        <p className="text-base md:text-xl text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed">
+        <p className="text-base md:text-xl text-gray-300 mb-5 sm:mb-8 max-w-2xl mx-auto leading-relaxed">
           {heroData.description}
         </p>
 
@@ -239,7 +239,7 @@ const Hero = () => {
         {socialLinks.length > 0}
 
         {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row justify-center gap-4 mb-12 sm:mb-16">
+        <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 mb-8 sm:mb-12">
           <button className="px-6 py-3 sm:px-8 sm:py-4 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold rounded-full hover:from-cyan-600 hover:to-blue-700 transition-all duration-300 transform hover:scale-105 shadow-lg">
             View Resume
           </button>
