@@ -86,10 +86,10 @@ const Gallery = () => {
             Gallery
           </h2>
           <div className="w-24 h-1 bg-gradient-to-r from-cyan-400 to-purple-500 mx-auto mb-6"></div>
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-12 border border-white/20">
-            <ImageIcon className="mx-auto mb-4 text-gray-400" size={64} />
-            <p className="text-gray-300 text-lg">No gallery items available yet.</p>
-            <p className="text-gray-400 text-sm mt-2">Check back soon for updates!</p>
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 sm:p-8 md:p-12 border border-white/20">
+            <ImageIcon className="mx-auto mb-3 sm:mb-4 text-gray-400" size={48} />
+            <p className="text-sm sm:text-base md:text-lg text-gray-300">No gallery items available yet.</p>
+            <p className="text-xs sm:text-sm text-gray-400 mt-2">Check back soon for updates!</p>
           </div>
         </div>
       </div>
@@ -145,10 +145,10 @@ const Gallery = () => {
                 )}
               </div>
 
-              <div className="p-6">
-                <h3 className="text-lg font-semibold text-white mb-2">{item.title}</h3>
+              <div className="p-3 sm:p-4 md:p-6">
+                <h3 className="text-sm sm:text-base md:text-lg font-semibold text-white mb-2">{item.title}</h3>
                 {item.description && (
-                  <p className="text-gray-300 text-sm line-clamp-2">{item.description}</p>
+                  <p className="text-xs sm:text-sm text-gray-300 line-clamp-2">{item.description}</p>
                 )}
               </div>
             </div>

@@ -90,7 +90,7 @@ const Blog = () => {
           <div className="bg-white/10 backdrop-blur-md rounded-2xl overflow-hidden border border-white/20">
             <button
               onClick={() => setSelectedPost(null)}
-              className="m-6 text-cyan-400 hover:text-cyan-300 transition-colors"
+              className="m-3 sm:m-6 text-xs sm:text-sm text-cyan-400 hover:text-cyan-300 transition-colors"
             >
               ← Back to all posts
             </button>
@@ -105,24 +105,24 @@ const Blog = () => {
               </div>
             )}
 
-            <div className="p-8">
-              <div className="flex items-center space-x-4 text-gray-300 text-sm mb-6">
+            <div className="p-4 sm:p-6 md:p-8">
+              <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-300 mb-4 sm:mb-6">
                 <div className="flex items-center space-x-2">
-                  <Calendar size={16} />
+                  <Calendar size={14} />
                   <span>{formatDate(selectedPost.published_at || selectedPost.created_at)}</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Clock size={16} />
+                  <Clock size={14} />
                   <span>{estimateReadingTime(selectedPost.content)} min read</span>
                 </div>
               </div>
 
-              <h1 className="text-3xl md:text-4xl font-bold text-white mb-6">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-4 sm:mb-6">
                 {selectedPost.title}
               </h1>
 
               <div className="prose prose-invert max-w-none">
-                <div className="text-gray-300 leading-relaxed whitespace-pre-line">
+                <div className="text-xs sm:text-sm md:text-base text-gray-300 leading-relaxed whitespace-pre-line">
                   {selectedPost.content}
                 </div>
               </div>
@@ -150,29 +150,29 @@ const Blog = () => {
                     </div>
                   )}
 
-                  <div className={`p-8 ${post.featured_image ? 'md:w-2/3' : 'w-full'}`}>
-                    <div className="flex items-center space-x-4 text-gray-300 text-sm mb-4">
-                      <div className="flex items-center space-x-2">
-                        <Calendar size={16} />
+                  <div className={`p-3 sm:p-4 md:p-8 ${post.featured_image ? 'md:w-2/3' : 'w-full'}`}>
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-300 mb-3 sm:mb-4">
+                      <div className="flex items-center space-x-1 sm:space-x-2">
+                        <Calendar size={12} />
                         <span>{formatDate(post.published_at || post.created_at)}</span>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <Clock size={16} />
+                      <div className="flex items-center space-x-1 sm:space-x-2">
+                        <Clock size={12} />
                         <span>{estimateReadingTime(post.content)} min read</span>
                       </div>
                     </div>
 
-                    <h2 className="text-2xl font-bold text-white mb-4 group-hover:text-cyan-400 transition-colors">
+                    <h2 className="text-sm sm:text-base md:text-2xl font-bold text-white mb-2 sm:mb-4 group-hover:text-cyan-400 transition-colors">
                       {post.title}
                     </h2>
 
-                    <p className="text-gray-300 mb-6 line-clamp-3">
+                    <p className="text-xs sm:text-sm text-gray-300 mb-4 line-clamp-2 sm:line-clamp-3">
                       {post.excerpt || post.content.substring(0, 200) + '...'}
                     </p>
 
-                    <div className="flex items-center text-cyan-400 font-medium group-hover:text-cyan-300 transition-colors">
+                    <div className="flex items-center text-cyan-400 text-xs sm:text-sm font-medium group-hover:text-cyan-300 transition-colors">
                       <span>Read more</span>
-                      <ArrowRight size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
+                      <ArrowRight size={14} className="ml-2 group-hover:translate-x-1 transition-transform" />
                     </div>
                   </div>
                 </div>

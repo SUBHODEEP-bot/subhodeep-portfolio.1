@@ -84,7 +84,7 @@ const Skills = () => {
             return (
               <div key={category.key} className="space-y-8">
                 <div className="text-center">
-                  <h3 className="text-3xl font-bold text-white mb-4">{category.title}</h3>
+                  <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-4">{category.title}</h3>
                   <div className={`w-16 h-1 bg-gradient-to-r ${category.color} mx-auto`}></div>
                 </div>
 
@@ -95,26 +95,26 @@ const Skills = () => {
                     return (
                       <div
                         key={skill.id}
-                        className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 group"
+                        className="bg-white/10 backdrop-blur-md rounded-2xl p-3 sm:p-4 md:p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 group"
                       >
-                        <div className="flex items-center space-x-4 mb-4">
-                          <div className={`w-12 h-12 bg-gradient-to-r ${category.color} rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
-                            <IconComponent className="text-white" size={24} />
+                        <div className="flex items-center space-x-2 sm:space-x-3 mb-3 sm:mb-4">
+                          <div className={`w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r ${category.color} rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
+                            <IconComponent className="text-white" size={20} />
                           </div>
                           <div>
-                            <h4 className="text-xl font-semibold text-white">{skill.name}</h4>
-                            <p className="text-sm text-gray-400 capitalize">{skill.category}</p>
+                            <h4 className="text-sm sm:text-base md:text-lg font-semibold text-white">{skill.name}</h4>
+                            <p className="text-xs text-gray-400 capitalize">{skill.category}</p>
                           </div>
                         </div>
 
                         <div className="space-y-2">
                           <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-300">Proficiency</span>
-                            <span className="text-sm font-semibold text-cyan-400">{skill.proficiency}%</span>
+                            <span className="text-xs text-gray-300">Proficiency</span>
+                            <span className="text-xs font-semibold text-cyan-400">{skill.proficiency}%</span>
                           </div>
-                          <div className="w-full bg-gray-700 rounded-full h-2">
+                          <div className="w-full bg-gray-700 rounded-full h-1.5 sm:h-2">
                             <div
-                              className={`h-2 bg-gradient-to-r ${category.color} rounded-full transition-all duration-1000 ease-out`}
+                              className={`h-1.5 sm:h-2 bg-gradient-to-r ${category.color} rounded-full transition-all duration-1000 ease-out`}
                               style={{ width: `${skill.proficiency}%` }}
                             ></div>
                           </div>
