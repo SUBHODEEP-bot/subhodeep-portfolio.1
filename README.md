@@ -1,4 +1,4 @@
-# Subhodeep Personal Portal
+# Subhodeep Pal Portfolio
 
 This is the personal portfolio website of **Subhodeep Pal**, designed to showcase projects, skills, and personal achievements in a clean and professional format.
 
