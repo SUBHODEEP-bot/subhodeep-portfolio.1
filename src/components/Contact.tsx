@@ -127,7 +127,7 @@ const Contact = () => {
       <div className="relative py-20 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+            <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">
               Get In Touch
             </h2>
             <div className="w-24 h-1 bg-gradient-to-r from-cyan-400 to-purple-500 mx-auto mb-6"></div>
@@ -136,7 +136,7 @@ const Contact = () => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
             {/* Contact Information */}
             <div className="space-y-8">
               <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">

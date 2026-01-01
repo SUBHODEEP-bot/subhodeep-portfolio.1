@@ -65,7 +65,7 @@ const Awards = () => {
     <div className="py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-extrabold text-white sm:text-5xl">
+          <h2 className="text-3xl font-extrabold text-white sm:text-5xl">
             Awards & Certificates
           </h2>
           <p className="mt-4 text-xl text-slate-300">
@@ -79,7 +79,7 @@ const Awards = () => {
                 <img 
                   src={award.image_url} 
                   alt={award.title} 
-                  className="w-full h-48 object-cover rounded-t-lg cursor-pointer hover:opacity-90 transition-opacity duration-200" 
+                  className="w-full h-40 sm:h-48 object-cover rounded-t-lg cursor-pointer hover:opacity-90 transition-opacity duration-200" 
                   onClick={() => handleImageClick(award)}
                   title="Click to view full size"
                 />

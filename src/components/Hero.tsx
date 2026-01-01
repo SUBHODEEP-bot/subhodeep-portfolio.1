@@ -196,11 +196,11 @@ const Hero = () => {
     }
   };
 
-  return <div className="relative min-h-screen flex items-center justify-center px-4 pt-16">
+    return <div className="relative min-h-screen flex items-center justify-center px-4 pt-16">
       <div className="text-center z-10">
         {/* Profile Image */}
         <div className="mb-8">
-          <div className="relative mx-auto w-48 h-48 mb-6">
+          <div className="relative mx-auto w-40 h-40 sm:w-48 sm:h-48 mb-6">
             <div className="w-full h-full rounded-full">
               {heroData.avatar_url ? (
                 <img 
@@ -219,11 +219,11 @@ const Hero = () => {
         </div>
 
         {/* Name and Dynamic Title */}
-        <h1 className="text-5xl md:text-7xl font-bold text-white mb-4">
+        <h1 className="text-3xl sm:text-4xl md:text-7xl font-bold text-white mb-4">
           {heroData.name}
         </h1>
         
-        <div className="text-2xl md:text-3xl text-cyan-300 mb-8 h-12 flex items-center justify-center">
+        <div className="text-xl md:text-3xl text-cyan-300 mb-8 h-12 flex items-center justify-center">
           <span className="font-light">
             {displayText}
             <span className="animate-pulse">|</span>
@@ -231,7 +231,7 @@ const Hero = () => {
         </div>
 
         {/* Description */}
-        <p className="text-lg md:text-xl text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed">
+        <p className="text-base md:text-xl text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed">
           {heroData.description}
         </p>
 
@@ -239,11 +239,11 @@ const Hero = () => {
         {socialLinks.length > 0}
 
         {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row justify-center gap-4 mb-16">
-          <button className="px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold rounded-full hover:from-cyan-600 hover:to-blue-700 transition-all duration-300 transform hover:scale-105 shadow-lg">
+        <div className="flex flex-col sm:flex-row justify-center gap-4 mb-12 sm:mb-16">
+          <button className="px-6 py-3 sm:px-8 sm:py-4 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold rounded-full hover:from-cyan-600 hover:to-blue-700 transition-all duration-300 transform hover:scale-105 shadow-lg">
             View Resume
           </button>
-          <button onClick={scrollToAbout} className="px-8 py-4 border-2 border-cyan-400 text-cyan-400 font-semibold rounded-full hover:bg-cyan-400 hover:text-white transition-all duration-300 transform hover:scale-105">
+          <button onClick={scrollToAbout} className="px-6 py-3 sm:px-8 sm:py-4 border-2 border-cyan-400 text-cyan-400 font-semibold rounded-full hover:bg-cyan-400 hover:text-white transition-all duration-300 transform hover:scale-105">
             Explore Profile
           </button>
         </div>

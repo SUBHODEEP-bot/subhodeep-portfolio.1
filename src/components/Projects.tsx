@@ -54,8 +54,8 @@ const Projects = () => {
   return (
     <div className="relative py-20 px-4">
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">
             Featured Projects
           </h2>
           <div className="w-24 h-1 bg-gradient-to-r from-cyan-400 to-purple-500 mx-auto mb-6"></div>
@@ -69,14 +69,14 @@ const Projects = () => {
             <p className="text-xl">No projects available yet.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {projects.map((project) => (
               <div
                 key={project.id}
                 className="bg-white/10 backdrop-blur-md rounded-2xl overflow-hidden border border-white/20 hover:bg-white/15 transition-all duration-300 group"
               >
                 {/* Project Image */}
-                <div className="relative h-48 bg-gradient-to-br from-gray-800 to-gray-900 overflow-hidden">
+                <div className="relative h-40 sm:h-48 bg-gradient-to-br from-gray-800 to-gray-900 overflow-hidden">
                   {project.featured && (
                     <div className="absolute top-4 right-4 z-10">
                       <div className="flex items-center space-x-1 bg-yellow-500 text-black px-2 py-1 rounded-full text-xs font-semibold">
